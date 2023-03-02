@@ -130,7 +130,7 @@ class Kettle():
     """ STATUS METHODS """
 
     def print_status(self):
-        class_names = self.trainset.classes
+        class_names = self.validset.classes
         print(
             f'Poisoning setup generated for threat model {self.args.threatmodel} and '
             f'budget of {self.args.budget * 100}% - {len(self.poisonset)} images:')
@@ -527,7 +527,7 @@ class Kettle():
 
         elif mode == 'limited':
             # Save training set
-            names = self.trainset.classes
+            names = self.valid.classes
             for name in names:
                 os.makedirs(os.path.join(path, 'train', name), exist_ok=True)
                 os.makedirs(os.path.join(path, 'targets', name), exist_ok=True)
@@ -545,7 +545,7 @@ class Kettle():
 
         elif mode == 'full':
             # Save training set
-            names = self.trainset.classes
+            names = self.validset.classes
             for name in names:
                 os.makedirs(os.path.join(path, 'train', name), exist_ok=True)
                 os.makedirs(os.path.join(path, 'test', name), exist_ok=True)
