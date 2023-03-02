@@ -18,7 +18,7 @@ from .diff_data_augmentation import RandomTransform
 
 from ..consts import PIN_MEMORY, BENCHMARK, DISTRIBUTED_BACKEND, SHARING_STRATEGY, MAX_THREADING
 from ..utils import set_random_seed
-from ....CLIP.src.data import load_default_datasets
+from ...CLIP.src.data import load_default_datasets
 
 torch.backends.cudnn.benchmark = BENCHMARK
 torch.multiprocessing.set_sharing_strategy(SHARING_STRATEGY)

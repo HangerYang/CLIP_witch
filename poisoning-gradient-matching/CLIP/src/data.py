@@ -2,7 +2,6 @@ import os
 import torch
 import logging
 import torchvision
-import torchvision.transforms as transforms
 import pandas as pd
 from PIL import Image, ImageFile
 from torch.utils.data import Dataset, DataLoader
