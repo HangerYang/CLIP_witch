@@ -2,13 +2,14 @@ import os
 import torch
 import logging
 import torchvision
+import torchvision.transforms as transforms
 import pandas as pd
 from PIL import Image, ImageFile
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
-from utils.augment_text import _augment_text
-from utils.augment_image import _augment_image
+from ..utils.augment_text import _augment_text
+from ..utils.augment_image import _augment_image
 
 from CLIP.data.CIFAR10.test.classes import classes as CIFAR10
 from CLIP.data.CIFAR100.test.classes import classes as CIFAR100

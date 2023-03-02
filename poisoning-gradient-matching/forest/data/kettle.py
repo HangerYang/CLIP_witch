@@ -11,14 +11,16 @@ import warnings
 import random
 import PIL
 
-from .datasets import construct_datasets, Subset
-from .cached_dataset import CachedDataset
+# from .datasets import construct_datasets, Subset
+# from .cached_dataset import CachedDataset
 
-from .diff_data_augmentation import RandomTransform
-
-from ..consts import PIN_MEMORY, BENCHMARK, DISTRIBUTED_BACKEND, SHARING_STRATEGY, MAX_THREADING
-from ..utils import set_random_seed
-from ...CLIP.src.data import load_default_datasets
+# from .diff_data_augmentation import RandomTransform
+#
+# from ..consts import PIN_MEMORY, BENCHMARK, DISTRIBUTED_BACKEND, SHARING_STRATEGY, MAX_THREADING
+# from ..utils import set_random_seed
+import sys
+sys.path.append('../../../')
+from CLIP.src.data import load_default_datasets
 
 torch.backends.cudnn.benchmark = BENCHMARK
 torch.multiprocessing.set_sharing_strategy(SHARING_STRATEGY)
