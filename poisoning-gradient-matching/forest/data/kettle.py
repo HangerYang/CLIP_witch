@@ -10,7 +10,7 @@ import os
 import warnings
 import random
 import PIL
-
+from tqdm import tqdm
 from .datasets import construct_datasets, Subset
 from .cached_dataset import CachedDataset
 
@@ -58,9 +58,11 @@ class Kettle():
             assert processor is not None
             self.trainset, self.validset = load_default_datasets(args, processor)
 
-            cc = torch.cat([self.trainset[i][0].reshape(3, -1) for i in range(len(self.trainset))], dim=1)
-            self.trainsetdata_mean = torch.mean(cc, dim=1).tolist()
-            self.trainset.data_std = torch.std(cc, dim=1).tolist()
+            # cc = torch.cat([self.trainset[i][0].reshape(3, -1) for i in range(len(self.trainset))], dim=1)
+            # self.trainsetdata_mean = torch.mean(cc, dim=1).tolist()
+            # self.trainset.data_std = torch.std(cc, dim=1).tolist()
+            self.trainset.data_mean = (0.0, 0.0, 0.0)
+            self.trainset.data_std = (1.0, 1.0, 1.0)
 
             self.embedding_size = embedding_size
             self.ctx_size = ctx_size
