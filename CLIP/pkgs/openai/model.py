@@ -1,3 +1,4 @@
+import pdb
 from collections import OrderedDict
 from typing import Tuple, Union
 
@@ -362,6 +363,7 @@ class CLIP(nn.Module):
         return x
 
     def forward(self, input_ids, attention_mask, pixel_values, text_delta=None):
+        pdb.set_trace()
         image_features = self.get_image_features(pixel_values = pixel_values)
         text_features = self.get_text_features(input_ids = input_ids, attention_mask = attention_mask,
                                                text_delta=text_delta)
