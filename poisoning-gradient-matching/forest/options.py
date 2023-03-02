@@ -35,7 +35,7 @@ def options():
     parser.add_argument('--poison_path', default='poisons/', type=str)
     parser.add_argument('--data_path', default='~/data', type=str)
     parser.add_argument('--train_data', default='~/data', type=str)
-    parser.add_argument('--validation_data', default='~/data', type=str)
+    parser.add_argument('--validation_data', default='downloaded_data', type=str)
     ###########################################################################
 
 
