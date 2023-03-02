@@ -36,8 +36,8 @@ class _VictimSingle(_VictimBase):
         if hasattr(self.model, "context_length"):
             self.ctx_size = self.model.context_length
         self.model.to(**self.setup)
-        if torch.cuda.device_count() > 1:
-            self.model = torch.nn.DataParallel(self.model)
+        # if torch.cuda.device_count() > 1: remove comment after debugging
+        #     self.model = torch.nn.DataParallel(self.model)
         print(f'{self.args.net[0]} model initialized with random key {self.model_init_seed}.')
 
     """ METHODS FOR (CLEAN) TRAINING AND TESTING OF BREWED POISONS"""
@@ -81,8 +81,8 @@ class _VictimSingle(_VictimBase):
             print('Model reset to epoch 0.')
             self.model, self.criterion, self.optimizer, self.scheduler = self._initialize_model()
             self.model.to(**self.setup)
-            if torch.cuda.device_count() > 1:
-                self.model = torch.nn.DataParallel(self.model)
+            # if torch.cuda.device_count() > 1:  remove comment after debugging
+            #     self.model = torch.nn.DataParallel(self.model)
         return stats
 
     """ Various Utilities."""
