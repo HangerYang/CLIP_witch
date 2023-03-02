@@ -3,7 +3,7 @@ import argparse
 import torchvision
 import pandas as pd
 from tqdm import tqdm
-from utils import config
+import config
 from multiprocessing import Pool
 from PIL import Image, ImageFile
 
