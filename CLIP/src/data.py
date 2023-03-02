@@ -2,6 +2,7 @@ import os
 import torch
 import logging
 import torchvision
+import torchvision.transforms as transforms
 import pandas as pd
 from PIL import Image, ImageFile
 from torch.utils.data import Dataset, DataLoader
@@ -22,8 +23,8 @@ DATASETS = {
     'ImageNet1K' : ImageNet1K
 }
 class ImageCaptionDataset(Dataset):
-    def __init__(self, path, processor, target_dataset=None,
-                 image_key='IMAGES', caption_key='CAPTIONS', delimiter='\t', inmodal = False):
+    def __init__(self, path, processor,
+                 image_key='path', caption_key='caption', delimiter=',', inmodal = False):
         logging.debug(f"Loading aligned data from {path}")
 
         df = pd.read_csv(path, sep = delimiter)
@@ -33,11 +34,6 @@ class ImageCaptionDataset(Dataset):
         self.captions = processor.process_text(df[caption_key].tolist())
         self.processor = processor
 
-        if target_dataset is not None:
-            self.classes = DATASETS[target_dataset]['classes']
-            self.super_classes = DATASETS[target_dataset]['superclasses']
-            self.templates = DATASETS[target_dataset]['templates']
-            self.generalTemplates = DATASETS[target_dataset]['generalTemplates']
 
         self.inmodal = inmodal
         if(inmodal):
@@ -120,6 +116,43 @@ class ImageLabelDataset(Dataset):
         image = self.transform(Image.open(os.path.join(self.root, self.images[idx])))
         label = self.labels[idx]
         return image, label
+
+        # if target_dataset is not None:
+        #     self.classes = DATASETS[target_dataset]['classes']
+        #     self.super_classes = DATASETS[target_dataset]['superclasses']
+        #     self.templates = DATASETS[target_dataset]['templates']
+        #     self.generalTemplates = DATASETS[target_dataset]['generalTemplates']
+class CIFAR10_Caption(torchvision.datasets.CIFAR10):
+    """Super-class CIFAR10 to return image ids with images."""
+    def __init__(self, data_path, processor):
+        super().__init__(root=data_path, train=True, download=True, transform=processor.process_image)
+        self.classes = CIFAR10['classes']
+        self.super_classes = CIFAR10['superclasses']
+        self.templates = CIFAR10['templates']
+        self.generalTemplates = CIFAR10['generalTemplates']
+
+    def __getitem__(self, index):
+        img, target = self.data[index], self.targets[index]
+
+        # doing this so that it is consistent with all other datasets
+        # to return a PIL Image
+        img = Image.fromarray(img)
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return img, target, index, None
+
+    def get_target(self, index):
+        target = self.targets[index]
+
+        if self.target_transform is not None:
+            target = self.target_transform(target)
+
+        return target, index
 
 def get_eval_test_dataloader(options, processor):
     if(options.eval_test_data_dir is None): return
@@ -205,7 +238,7 @@ def get_eval_train_dataloader(options, processor):
 
 def load_default_datasets(options, processor):
     return ImageCaptionDataset(options.train_data, processor), \
-           ImageCaptionDataset(options.validation_data, processor, target_dataset='CIFAR10')#, options.target_dataset) #TODO: add arg target_dataset
+           CIFAR10_Caption(options.validation_data, processor)#, options.target_dataset) #TODO: add arg target_dataset
 
 def load(options, processor):
     data = {}

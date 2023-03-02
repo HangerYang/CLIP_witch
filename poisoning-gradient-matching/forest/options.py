@@ -17,7 +17,7 @@ def options():
     parser.add_argument('--dataset', default='CIFAR10', type=str, choices=['CIFAR10', 'CIFAR100', 'ImageNet', 'ImageNet1k', 'MNIST', 'TinyImageNet'])
     parser.add_argument('--recipe', default='gradient-matching', type=str, choices=['gradient-matching', 'gradient-matching-private',
                                                                                     'watermarking', 'poison-frogs', 'metapoison', 'bullseye'])
-    parser.add_argument('--threatmodel', default='single-class', type=str, choices=['single-class', 'third-party', 'random-subset'])
+    parser.add_argument('--threatmodel', default='random-subset', type=str, choices=['single-class', 'third-party', 'random-subset'])
 
     # Reproducibility management:
     parser.add_argument('--poisonkey', default=None, type=str, help='Initialize poison setup with this key.')  # Also takes a triplet 0-3-1

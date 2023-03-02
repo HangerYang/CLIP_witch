@@ -429,6 +429,7 @@ class Kettle():
                 _, idx = self.validset.get_target(index)
                 total_ids.append(idx)
             self.target_ids = np.random.choice(total_ids, size=self.args.targets, replace=False)
+        print("target ids:", self.target_ids)
 
         targetset = Subset(self.validset, indices=self.target_ids)
         valid_indices = []

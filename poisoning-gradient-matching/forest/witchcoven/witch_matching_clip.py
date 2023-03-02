@@ -8,7 +8,6 @@ from .witch_base import _Witch
 
 class WitchGradientMatchingClip(_Witch):
 
-
     def _batched_step(self, poison_delta, poison_delta_text, poison_bounds, example, victim, kettle):
         """Take a step toward minmizing the current target loss."""
         images, token_ids, indices, attn_masks = example
