@@ -1,4 +1,5 @@
 """Main class, holding information about models and training/testing routines."""
+import pdb
 
 import torch
 import warnings
@@ -144,6 +145,7 @@ class _Witch():
                                                                                             self.args.attackiter // 1.142], gamma=0.1)
             poison_delta.grad = torch.zeros_like(poison_delta)
             poison_delta_text.grad = torch.zeros_like(poison_delta_text)
+            pdb.set_trace()
             dm, ds = kettle.dm.to(device=torch.device('cpu')), kettle.ds.to(device=torch.device('cpu'))
             poison_bounds = torch.zeros_like(poison_delta)
         else:
