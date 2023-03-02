@@ -336,7 +336,7 @@ class Kettle():
         random-subset draw poison images from all classes and draws targets from different classes to which it assigns
         different labels.
         """
-        num_classes = len(self.trainset.classes)
+        num_classes = len(self.validset.classes)
 
         target_class = np.random.randint(num_classes)
         list_intentions = list(range(num_classes))
