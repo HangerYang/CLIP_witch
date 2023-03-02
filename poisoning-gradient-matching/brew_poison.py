@@ -17,11 +17,10 @@ if args.deterministic:
 
 
 if __name__ == "__main__":
-
     setup = forest.utils.system_startup(args)
-
     model = forest.Victim(args, setup=setup)
-    data = forest.Kettle(args, model.defs.batch_size, model.defs.augmentations, setup=setup)
+    data = forest.Kettle(args, model.defs.batch_size, model.defs.augmentations, processor=model.processor,
+                         embedding_size=model.embedding_size, ctx_size=model.ctx_size, setup=setup)
     witch = forest.Witch(args, setup=setup)
 
     start_time = time.time()

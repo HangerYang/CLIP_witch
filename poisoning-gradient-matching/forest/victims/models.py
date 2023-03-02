@@ -8,15 +8,20 @@ from collections import OrderedDict
 
 from .mobilenet import MobileNetV2
 from .vgg import VGG
-
+from CLIP.pkgs.openai.clip import load as load_model
 
 def get_model(model_name, dataset_name, pretrained=False):
     """Retrieve an appropriate architecture."""
-    if 'CIFAR' in dataset_name or 'MNIST' in dataset_name:
+    processor = None
+    if 'CLIP' in model_name:
+        model, processor = load_model(model_name[5:], pretrained) #format: CLIP_NAME
+
+    elif 'CIFAR' in dataset_name or 'MNIST' in dataset_name:
         if pretrained:
             raise ValueError('Loading pretrained models is only supported for ImageNet.')
         in_channels = 1 if dataset_name == 'MNIST' else 3
         num_classes = 10 if dataset_name in ['CIFAR10', 'MNIST'] else 100
+
         if 'ResNet' in model_name:
             model = resnet_picker(model_name, dataset_name)
         elif 'efficientnet-b' in model_name.lower():
@@ -76,7 +81,7 @@ def get_model(model_name, dataset_name, pretrained=False):
             except AttributeError:
                 raise NotImplementedError(f'ImageNet model {model_name} not found at torchvision.models.')
 
-    return model
+    return model, processor
 
 
 def linear_model(dataset, num_classes=10):

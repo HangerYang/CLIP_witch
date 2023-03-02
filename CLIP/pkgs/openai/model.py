@@ -289,6 +289,7 @@ class CLIP(nn.Module):
         )
 
         self.vocab_size = vocab_size
+        self.embedding_size = transformer_width
         self.token_embedding = nn.Embedding(vocab_size, transformer_width)
         self.positional_embedding = nn.Parameter(torch.empty(self.context_length, transformer_width))
         self.ln_final = LayerNorm(transformer_width)
@@ -343,8 +344,10 @@ class CLIP(nn.Module):
     def get_image_features(self, pixel_values):
         return self.visual(pixel_values.type(self.dtype))
 
-    def get_text_features(self, input_ids = None, attention_mask = None):
+    def get_text_features(self, input_ids = None, attention_mask = None, text_delta=None):
         x = self.token_embedding(input_ids).type(self.dtype)  # [batch_size, n_ctx, d_model]
+        if text_delta is not None:
+            x += text_delta
 
         x = x + self.positional_embedding.type(self.dtype)
         x = x.permute(1, 0, 2)  # NLD -> LND
@@ -358,9 +361,10 @@ class CLIP(nn.Module):
 
         return x
 
-    def forward(self, input_ids, attention_mask, pixel_values):        
+    def forward(self, input_ids, attention_mask, pixel_values, text_delta=None):
         image_features = self.get_image_features(pixel_values = pixel_values)
-        text_features = self.get_text_features(input_ids = input_ids, attention_mask = attention_mask)
+        text_features = self.get_text_features(input_ids = input_ids, attention_mask = attention_mask,
+                                               text_delta=text_delta)
 
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)

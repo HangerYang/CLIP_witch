@@ -8,9 +8,10 @@ import torchvision.transforms as transforms
 from PIL import Image
 import os
 import glob
-
+import pandas as pd
 from torchvision.datasets.imagenet import load_meta_file
 from torchvision.datasets.utils import verify_str_arg
+from torch.utils.data import Dataset
 
 # Block ImageNet corrupt EXIF warnings
 import warnings

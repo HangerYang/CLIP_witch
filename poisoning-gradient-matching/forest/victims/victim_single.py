@@ -10,8 +10,7 @@ from ..consts import BENCHMARK
 torch.backends.cudnn.benchmark = BENCHMARK
 
 from .victim_base import _VictimBase
-
-
+from torch.nn.functional import normalize
 class _VictimSingle(_VictimBase):
     """Implement model-specific code and behavior for a single model on a single GPU.
 
@@ -30,8 +29,11 @@ class _VictimSingle(_VictimBase):
         else:
             self.model_init_seed = self.args.modelkey
         set_random_seed(self.model_init_seed)
-        self.model, self.defs, self.criterion, self.optimizer, self.scheduler = self._initialize_model(self.args.net[0])
-
+        self.model, self.defs, self.criterion, self.optimizer, self.scheduler, self.processor = self._initialize_model(self.args.net[0])
+        if hasattr(self.model, "embedding_size"):
+            self.embedding_size = self.model.embedding_size
+        if hasattr(self.model, "context_length"):
+            self.ctx_size = self.model.context_length
         self.model.to(**self.setup)
         if torch.cuda.device_count() > 1:
             self.model = torch.nn.DataParallel(self.model)
@@ -98,9 +100,16 @@ class _VictimSingle(_VictimBase):
         """Reset scheduler object to initial state."""
         _, _, self.optimizer, self.scheduler = self._initialize_model()
 
-    def gradient(self, images, labels, criterion=None):
+    def gradient(self, images, labels, criterion=None, attention_mask=None):
         """Compute the gradient of criterion(model) w.r.t to given data."""
-        if criterion is None:
+        if 'CLIP' in self.args.net[0]:
+            clipOutput = self.model(input_ids=labels, attention_mask=attention_mask, pixel_values=images)
+            image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
+            text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
+            probs = torch.diagonal(image_embeds @ text_embeds.T)
+
+            loss = criterion(probs, torch.ones_like(probs))
+        elif criterion is None:
             loss = self.criterion(self.model(images), labels)
         else:
             loss = criterion(self.model(images), labels)

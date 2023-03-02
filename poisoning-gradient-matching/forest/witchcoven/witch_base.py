@@ -83,6 +83,7 @@ class _Witch():
         self.targets = torch.stack([data[0] for data in kettle.targetset], dim=0).to(**self.setup)
         self.intended_classes = torch.tensor(kettle.poison_setup['intended_class']).to(device=self.setup['device'], dtype=torch.long)
         self.true_classes = torch.tensor([data[1] for data in kettle.targetset]).to(device=self.setup['device'], dtype=torch.long)
+        self.intended_class_caption_ids = kettle.class_input_ids[self.intended_classes]
 
 
         # Precompute target gradients
@@ -94,6 +95,8 @@ class _Witch():
                 grad *= -1
         elif self.args.target_criterion in ['xent', 'cross-entropy']:
             self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_classes)
+        elif self.args.target_criterion in ['binary', 'contrastive']:
+            self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_class_caption_ids)
         else:
             raise ValueError('Invalid target criterion chosen ...')
         print(f'Target Grad Norm is {self.target_gnorm}')
@@ -122,7 +125,7 @@ class _Witch():
 
     def _run_trial(self, victim, kettle):
         """Run a single trial."""
-        poison_delta = kettle.initialize_poison()
+        poison_delta, poison_delta_text = kettle.initialize_poison()
         if self.args.full_data:
             dataloader = kettle.trainloader
         else:
@@ -131,13 +134,14 @@ class _Witch():
         if self.args.attackoptim in ['Adam', 'signAdam', 'momSGD', 'momPGD']:
             # poison_delta.requires_grad_()
             if self.args.attackoptim in ['Adam', 'signAdam']:
-                att_optimizer = torch.optim.Adam([poison_delta], lr=self.tau0, weight_decay=0)
+                att_optimizer = torch.optim.Adam([poison_delta, poison_delta_text], lr=self.tau0, weight_decay=0)
             else:
-                att_optimizer = torch.optim.SGD([poison_delta], lr=self.tau0, momentum=0.9, weight_decay=0)
+                att_optimizer = torch.optim.SGD([poison_delta, poison_delta_text], lr=self.tau0, momentum=0.9, weight_decay=0)
             if self.args.scheduling:
                 scheduler = torch.optim.lr_scheduler.MultiStepLR(att_optimizer, milestones=[self.args.attackiter // 2.667, self.args.attackiter // 1.6,
                                                                                             self.args.attackiter // 1.142], gamma=0.1)
             poison_delta.grad = torch.zeros_like(poison_delta)
+            poison_delta_text.grad = torch.zeros_like(poison_delta_text)
             dm, ds = kettle.dm.to(device=torch.device('cpu')), kettle.ds.to(device=torch.device('cpu'))
             poison_bounds = torch.zeros_like(poison_delta)
         else:
@@ -147,7 +151,7 @@ class _Witch():
             target_losses = 0
             poison_correct = 0
             for batch, example in enumerate(dataloader):
-                loss, prediction = self._batched_step(poison_delta, poison_bounds, example, victim, kettle)
+                loss, prediction = self._batched_step(poison_delta, poison_delta_text, poison_bounds, example, victim, kettle)
                 target_losses += loss
                 poison_correct += prediction
 
@@ -161,6 +165,7 @@ class _Witch():
             if self.args.attackoptim in ['Adam', 'signAdam', 'momSGD', 'momPGD']:
                 if self.args.attackoptim in ['momPGD', 'signAdam']:
                     poison_delta.grad.sign_()
+                    poison_delta_text.grad.sign_()
                 att_optimizer.step()
                 if self.args.scheduling:
                     scheduler.step()
@@ -191,7 +196,7 @@ class _Witch():
 
 
 
-    def _batched_step(self, poison_delta, poison_bounds, example, victim, kettle):
+    def _batched_step(self, poison_delta, poison_delta_text, poison_bounds, example, victim, kettle):
         """Take a step toward minmizing the current target loss."""
         inputs, labels, ids = example
 

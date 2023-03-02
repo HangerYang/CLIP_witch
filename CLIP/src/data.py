@@ -10,10 +10,20 @@ from torch.utils.data.distributed import DistributedSampler
 from utils.augment_text import _augment_text
 from utils.augment_image import _augment_image
 
+from CLIP.data.CIFAR10.test.classes import classes as CIFAR10
+from CLIP.data.CIFAR100.test.classes import classes as CIFAR100
+from CLIP.data.ImageNet1K.validation.classes import classes as ImageNet1K
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-    
+
+DATASETS = {
+    'CIFAR10' : CIFAR10,
+    'CIFAR100' : CIFAR100,
+    'ImageNet1K' : ImageNet1K
+}
 class ImageCaptionDataset(Dataset):
-    def __init__(self, path, image_key, caption_key, delimiter, processor, inmodal = False):
+    def __init__(self, path, processor, target_dataset=None,
+                 image_key='IMAGES', caption_key='CAPTIONS', delimiter='\t', inmodal = False):
         logging.debug(f"Loading aligned data from {path}")
 
         df = pd.read_csv(path, sep = delimiter)
@@ -22,11 +32,17 @@ class ImageCaptionDataset(Dataset):
         self.images = df[image_key].tolist()
         self.captions = processor.process_text(df[caption_key].tolist())
         self.processor = processor
-        
+
+        if target_dataset is not None:
+            self.classes = DATASETS[target_dataset]['classes']
+            self.super_classes = DATASETS[target_dataset]['superclasses']
+            self.templates = DATASETS[target_dataset]['templates']
+            self.generalTemplates = DATASETS[target_dataset]['generalTemplates']
+
         self.inmodal = inmodal
         if(inmodal):
             self.augment_captions = processor.process_text([_augment_text(caption) for caption in df[caption_key].tolist()])
-        
+
         logging.debug("Loaded data")
 
     def __len__(self):
@@ -34,17 +50,33 @@ class ImageCaptionDataset(Dataset):
 
     def __getitem__(self, idx):
         item = {}
-        
+
         if(self.inmodal):
             item["input_ids"] = self.captions["input_ids"][idx], self.augment_captions["input_ids"][idx]
             item["attention_mask"] = self.captions["attention_mask"][idx], self.augment_captions["attention_mask"][idx]
-            item["pixel_values"] = self.processor.process_image(Image.open(os.path.join(self.root, self.images[idx]))), self.processor.process_image(_augment_image(os.path.join(self.root, self.images[idx])))
-        else:  
+            item["pixel_values"] = self.processor.process_image(Image.open(os.path.join(self.root, self.images[idx]))), \
+                                   self.processor.process_image(_augment_image(os.path.join(self.root, self.images[idx])))
+            return item["pixel_values"][0], item["input_ids"], idx, item["attention_mask"], item["pixel_values"][1]
+        else:
             item["input_ids"] = self.captions["input_ids"][idx]
             item["attention_mask"] = self.captions["attention_mask"][idx]
             item["pixel_values"] = self.processor.process_image(Image.open(os.path.join(self.root, self.images[idx])))
-            
-        return item
+
+            return item["pixel_values"], item["input_ids"], idx, item["attention_mask"]
+
+    def get_target(self, index):
+        """Return only the target and its id.
+
+        Args:
+            index (int): Index
+
+        Returns:
+            tuple: (target, idx) where target is class_index of the target class.
+
+        """
+        target = self.captions["input_ids"][index]
+
+        return target, index
 
 def get_train_dataloader(options, processor):
     path = options.train_data
@@ -53,11 +85,11 @@ def get_train_dataloader(options, processor):
     batch_size = options.batch_size
 
     dataset = ImageCaptionDataset(path, image_key = options.image_key, caption_key = options.caption_key, delimiter = options.delimiter, processor = processor, inmodal = options.inmodal)
-        
+
     sampler = DistributedSampler(dataset) if(options.distributed) else None
 
     dataloader = DataLoader(dataset, batch_size = batch_size, shuffle = (sampler is None), num_workers = options.num_workers, pin_memory = True, sampler = sampler, drop_last = True)
-    dataloader.num_samples = len(dataloader) * batch_size 
+    dataloader.num_samples = len(dataloader) * batch_size
     dataloader.num_batches = len(dataloader)
 
     return dataloader
@@ -68,7 +100,7 @@ def get_validation_dataloader(options, processor):
 
     dataset = ImageCaptionDataset(path, image_key = options.image_key, caption_key = options.caption_key, delimiter = options.delimiter, processor = processor, inmodal = options.inmodal)
     dataloader = DataLoader(dataset, batch_size = options.batch_size, shuffle = False, num_workers = options.num_workers, pin_memory = True, sampler = None, drop_last = False)
-    dataloader.num_samples = len(dataset) 
+    dataloader.num_samples = len(dataset)
     dataloader.num_batches = len(dataloader)
 
     return dataloader
@@ -170,6 +202,10 @@ def get_eval_train_dataloader(options, processor):
     dataloader.num_batches = len(dataloader)
 
     return dataloader
+
+def load_default_datasets(options, processor):
+    return ImageCaptionDataset(options.train_data, processor), \
+           ImageCaptionDataset(options.validation_data, processor, target_dataset='CIFAR10')#, options.target_dataset) #TODO: add arg target_dataset
 
 def load(options, processor):
     data = {}

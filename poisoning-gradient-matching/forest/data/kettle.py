@@ -18,6 +18,8 @@ from .diff_data_augmentation import RandomTransform
 
 from ..consts import PIN_MEMORY, BENCHMARK, DISTRIBUTED_BACKEND, SHARING_STRATEGY, MAX_THREADING
 from ..utils import set_random_seed
+from CLIP.src.data import load_default_datasets
+
 torch.backends.cudnn.benchmark = BENCHMARK
 torch.multiprocessing.set_sharing_strategy(SHARING_STRATEGY)
 
@@ -43,12 +45,34 @@ class Kettle():
 
     """
 
-    def __init__(self, args, batch_size, augmentations, setup=dict(device=torch.device('cpu'), dtype=torch.float)):
+    def __init__(self, args, batch_size, augmentations, processor=None, embedding_size=None, ctx_size=None,
+                 multimodal=True, setup=dict(device=torch.device('cpu'), dtype=torch.float)):
         """Initialize with given specs..."""
         self.args, self.setup = args, setup
         self.batch_size = batch_size
         self.augmentations = augmentations
-        self.trainset, self.validset = self.prepare_data(normalize=True)
+
+        if multimodal: #
+            assert processor is not None
+            self.trainset, self.validset = load_default_datasets(args, processor)
+
+            self.embedding_size = embedding_size
+            self.ctx_size = ctx_size
+            with torch.no_grad():
+                class_input_ids = []
+                class_attention_masks = []
+                for c in self.validset.classes:
+                    text = [template(c) for template in self.validset.generalTemplates]
+                    text_tokens = processor.process_text(text)
+                    text_input_ids, text_attention_mask = text_tokens["input_ids"].to(self.setup['device']), \
+                                                          text_tokens["attention_mask"].to(self.setup['device'])
+                    class_input_ids.append(text_input_ids)
+                    # class_attention_masks.append(text_attention_mask)
+                self.class_input_ids = torch.cat(class_input_ids, dim=0).to(self.setup['device'])
+                # self.class_attention_masks = torch.cat(class_attention_masks, dim=0).to(self.setup['device'])
+        else:
+            self.trainset, self.validset = self.prepare_data(normalize=True)
+
         num_workers = self.get_num_workers()
 
         if self.args.lmdb_path is not None:
@@ -424,6 +448,7 @@ class Kettle():
 
         Propagate initialization in distributed settings.
         """
+        init_text = None
         if initializer is None:
             initializer = self.args.init
 
@@ -437,6 +462,7 @@ class Kettle():
         elif initializer == 'randn':
             init = torch.randn(len(self.poison_ids), *self.trainset[0][0].shape)
             init *= self.args.eps / ds / 255
+            init_text = torch.randn(len(self.poison_ids), self.ctx_size, self.embedding_size)
         elif initializer == 'normal':
             init = torch.randn(len(self.poison_ids), *self.trainset[0][0].shape)
         else:
@@ -452,7 +478,7 @@ class Kettle():
                 init.to(device=torch.device('cpu'))
             else:
                 torch.distributed.broadcast(init, src=0)
-        return init
+        return init, init_text
 
     """ EXPORT METHODS """
 

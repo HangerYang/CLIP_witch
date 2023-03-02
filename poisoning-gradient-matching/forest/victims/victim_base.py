@@ -114,13 +114,13 @@ class _VictimBase:
 
     def _initialize_model(self, model_name):
 
-        model = get_model(model_name, self.args.dataset, pretrained=self.args.pretrained)
+        model, processor = get_model(model_name, self.args.dataset, pretrained=self.args.pretrained)
         # Define training routine
         defs = training_strategy(model_name, self.args)
         criterion = torch.nn.CrossEntropyLoss()
         optimizer, scheduler = get_optimizers(model, self.args, defs)
 
-        return model, defs, criterion, optimizer, scheduler
+        return model, defs, criterion, optimizer, scheduler, processor
 
 
     def _step(self, kettle, poison_delta, loss_fn, epoch, stats, model, defs, criterion, optimizer, scheduler):
