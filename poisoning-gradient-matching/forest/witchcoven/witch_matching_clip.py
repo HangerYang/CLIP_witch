@@ -39,7 +39,7 @@ class WitchGradientMatchingClip(_Witch):
 
             # Perform differentiable data augmentation
             if self.args.paugment:
-                inputs = kettle.augment(images, randgen=randgen)
+                images = kettle.augment(images, randgen=randgen)
 
             # Define the loss objective and compute gradients
             closure = self._define_objective(images, token_ids, attn_masks, delta_slice_text)
