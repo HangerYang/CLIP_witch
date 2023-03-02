@@ -1,4 +1,5 @@
 """Main class, holding information about models and training/testing routines."""
+import pdb
 
 import torch
 from ..consts import BENCHMARK
@@ -27,7 +28,7 @@ class WitchGradientMatchingClip(_Witch):
         # In distributed brewing, this is a synchronization operation
         images, token_ids, poison_slices, batch_positions, randgen = victim.distributed_control(
             images, token_ids, poison_slices, batch_positions)
-
+        pdb.set_trace()
         if len(batch_positions) > 0:
             delta_slice = poison_delta[poison_slices].detach().to(**self.setup)
             delta_slice_text = poison_delta_text[poison_slices].detach().to(**self.setup)
