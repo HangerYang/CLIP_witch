@@ -3,7 +3,7 @@ import nltk
 import argparse
 import pandas as pd
 from tqdm import tqdm
-import config
+import utils.config
 from .eda import *
 
 def _augment_text(caption):
