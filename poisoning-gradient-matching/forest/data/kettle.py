@@ -53,7 +53,7 @@ class Kettle():
         self.args, self.setup = args, setup
         self.batch_size = batch_size
         self.augmentations = augmentations
-
+        self.multimodal = multimodal
         if multimodal: #
             assert processor is not None
             self.trainset, self.validset = load_default_datasets(args, processor)
@@ -63,6 +63,9 @@ class Kettle():
             # self.trainset.data_std = torch.std(cc, dim=1).tolist()
             self.trainset.data_mean = (0.0, 0.0, 0.0)
             self.trainset.data_std = (1.0, 1.0, 1.0)
+
+            self.dm = torch.tensor(self.trainset.data_mean)[None, :, None, None].to(**self.setup)
+            self.ds = torch.tensor(self.trainset.data_std)[None, :, None, None].to(**self.setup)
 
             self.embedding_size = embedding_size
             self.ctx_size = ctx_size
