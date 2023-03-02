@@ -13,7 +13,7 @@ def options():
 
     ###########################################################################
     # Central:
-    parser.add_argument('--net', default='ResNet18', type=lambda s: [str(item) for item in s.split(',')])
+    parser.add_argument('--net', default='CLIP_RN50', type=lambda s: [str(item) for item in s.split(',')])
     parser.add_argument('--dataset', default='CIFAR10', type=str, choices=['CIFAR10', 'CIFAR100', 'ImageNet', 'ImageNet1k', 'MNIST', 'TinyImageNet'])
     parser.add_argument('--recipe', default='gradient-matching', type=str, choices=['gradient-matching', 'gradient-matching-private',
                                                                                     'watermarking', 'poison-frogs', 'metapoison', 'bullseye'])
@@ -34,6 +34,8 @@ def options():
     parser.add_argument('--table_path', default='tables/', type=str)
     parser.add_argument('--poison_path', default='poisons/', type=str)
     parser.add_argument('--data_path', default='~/data', type=str)
+    parser.add_argument('--train_data', default='~/data', type=str)
+    parser.add_argument('--validation_data', default='~/data', type=str)
     ###########################################################################
 
 
