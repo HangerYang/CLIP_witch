@@ -108,7 +108,7 @@ class _VictimSingle(_VictimBase):
             # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
             probs = torch.diagonal(image_embeds @ text_embeds.T)
 
-            loss = criterion(probs, torch.ones_like(probs))
+            loss = self.criterion(probs, torch.ones_like(probs))
         elif criterion is None:
             loss = self.criterion(self.model(images), labels)
         else:
