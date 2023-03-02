@@ -240,6 +240,7 @@ def load_default_datasets(options, processor):
     return ImageCaptionDataset(options.train_data, processor), \
            CIFAR10_Caption(options.validation_data, processor)#, options.target_dataset) #TODO: add arg target_dataset
 
+
 def load(options, processor):
     data = {}
     

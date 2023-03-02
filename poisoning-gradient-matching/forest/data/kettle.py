@@ -58,6 +58,10 @@ class Kettle():
             assert processor is not None
             self.trainset, self.validset = load_default_datasets(args, processor)
 
+            cc = torch.cat([self.trainset[i][0].reshape(3, -1) for i in range(len(self.trainset))], dim=1)
+            self.trainsetdata_mean = torch.mean(cc, dim=1).tolist()
+            self.trainset.data_std = torch.std(cc, dim=1).tolist()
+
             self.embedding_size = embedding_size
             self.ctx_size = ctx_size
             with torch.no_grad():
