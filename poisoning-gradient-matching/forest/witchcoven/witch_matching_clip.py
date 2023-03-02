@@ -72,10 +72,10 @@ class WitchGradientMatchingClip(_Witch):
         """Implement the closure here."""
         def closure(model, criterion, optimizer, target_grad,  target_gnorm):
             """This function will be evaluated on all GPUs."""  # noqa: D401
-            clipOutput = model(input_ids=token_ids, attention_mask=attn_masks, pixel_values=images,
+            image_embeds, text_embeds = model(input_ids=token_ids, attention_mask=attn_masks, pixel_values=images,
                                     text_delta=delta_slice_text)
-            image_embeds = clipOutput.image_embeds  # normalize(clipOutput.image_embeds)
-            text_embeds = clipOutput.text_embeds  # normalize(clipOutput.text_embeds)
+            # image_embeds = clipOutput.image_embeds  # normalize(clipOutput.image_embeds)
+            # text_embeds = clipOutput.text_embeds  # normalize(clipOutput.text_embeds)
             probs = torch.diagonal(image_embeds @ text_embeds.T)
 
             poison_loss = criterion(probs, torch.ones_like(probs))

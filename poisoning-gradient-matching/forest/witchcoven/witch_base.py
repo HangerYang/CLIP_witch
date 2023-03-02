@@ -2,7 +2,7 @@
 
 import torch
 import warnings
-
+from torch.nn import BCELoss
 from ..utils import cw_loss
 from ..consts import NON_BLOCKING, BENCHMARK
 torch.backends.cudnn.benchmark = BENCHMARK
@@ -30,6 +30,7 @@ class _Witch():
         self.args, self.setup = args, setup
         self.retain = True if self.args.ensemble > 1 and self.args.local_rank is None else False
         self.stat_optimal_loss = None
+        self.binary_loss = BCELoss()
 
     """ BREWING RECIPES """
 
@@ -95,8 +96,9 @@ class _Witch():
                 grad *= -1
         elif self.args.target_criterion in ['xent', 'cross-entropy']:
             self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_classes)
-        elif self.args.target_criterion in ['binary', 'contrastive']:
-            self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_class_caption_ids)
+        elif self.args.target_criterion in ['binary']:
+            self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_class_caption_ids,
+                                                                  criterion=self.binary_loss)
         else:
             raise ValueError('Invalid target criterion chosen ...')
         print(f'Target Grad Norm is {self.target_gnorm}')

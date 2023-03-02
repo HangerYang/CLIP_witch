@@ -110,7 +110,7 @@ class _VictimSingle(_VictimBase):
             probs = torch.diagonal(image_embeds @ text_embeds.T)
             pdb.set_trace()
 
-            loss = self.criterion(probs, torch.ones_like(probs))
+            loss = criterion(probs, torch.ones_like(probs))
         elif criterion is None:
             loss = self.criterion(self.model(images), labels)
         else:
