@@ -15,8 +15,9 @@ def options():
     # Central:
     parser.add_argument('--net', default='CLIP_RN50', type=lambda s: [str(item) for item in s.split(',')])
     parser.add_argument('--dataset', default='CIFAR10', type=str, choices=['CIFAR10', 'CIFAR100', 'ImageNet', 'ImageNet1k', 'MNIST', 'TinyImageNet'])
-    parser.add_argument('--recipe', default='gradient-matching', type=str, choices=['gradient-matching', 'gradient-matching-private',
-                                                                                    'watermarking', 'poison-frogs', 'metapoison', 'bullseye'])
+    parser.add_argument('--recipe', default='gradient-matching-clip', type=str, choices=['gradient-matching', 'gradient-matching-private',
+                                                                                    'watermarking', 'poison-frogs', 'metapoison', 'bullseye',
+                                                                                    'gradient-matching-clip'])
     parser.add_argument('--threatmodel', default='random-subset', type=str, choices=['single-class', 'third-party', 'random-subset'])
 
     # Reproducibility management:
@@ -46,7 +47,7 @@ def options():
     parser.add_argument('--init', default='randn', type=str)  # randn / rand
     parser.add_argument('--tau', default=0.1, type=float)
     parser.add_argument('--scheduling', action='store_false', help='Disable step size decay.')
-    parser.add_argument('--target_criterion', default='cross-entropy', type=str, help='Loss criterion for target loss')
+    parser.add_argument('--target_criterion', default='binary', type=str, help='Loss criterion for target loss')
     parser.add_argument('--restarts', default=8, type=int, help='How often to restart the attack.')
 
     parser.add_argument('--pbatch', default=512, type=int, help='Poison batch size during optimization')
