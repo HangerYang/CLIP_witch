@@ -1,4 +1,5 @@
 """Single model default victim class."""
+import pdb
 
 import torch
 import numpy as np
@@ -107,6 +108,7 @@ class _VictimSingle(_VictimBase):
             # image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
             # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
             probs = torch.diagonal(image_embeds @ text_embeds.T)
+            pdb.set_trace()
 
             loss = self.criterion(probs, torch.ones_like(probs))
         elif criterion is None:
