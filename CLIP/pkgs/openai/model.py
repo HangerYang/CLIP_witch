@@ -369,8 +369,8 @@ class CLIP(nn.Module):
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
-        output = CLIPOutput(image_features, text_features)        
-        return output
+        # output = CLIPOutput(image_features, text_features)
+        return image_features, text_features
 
 
 def convert_weights(model: nn.Module):

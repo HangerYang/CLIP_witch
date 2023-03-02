@@ -103,9 +103,9 @@ class _VictimSingle(_VictimBase):
     def gradient(self, images, labels, criterion=None, attention_mask=None):
         """Compute the gradient of criterion(model) w.r.t to given data."""
         if 'CLIP' in self.args.net[0]:
-            clipOutput = self.model(input_ids=labels, attention_mask=attention_mask, pixel_values=images)
-            image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
-            text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
+            image_embeds, text_embeds  = self.model(input_ids=labels, attention_mask=attention_mask, pixel_values=images)
+            # image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
+            # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
             probs = torch.diagonal(image_embeds @ text_embeds.T)
 
             loss = criterion(probs, torch.ones_like(probs))
