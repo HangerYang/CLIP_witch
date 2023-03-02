@@ -8,8 +8,8 @@ from PIL import Image, ImageFile
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
-from ..utils.augment_text import _augment_text
-from ..utils.augment_image import _augment_image
+# from ..utils.augment_text import _augment_text
+# from ..utils.augment_image import _augment_image
 
 from CLIP.data.CIFAR10.test.classes import classes as CIFAR10
 from CLIP.data.CIFAR100.test.classes import classes as CIFAR100
@@ -36,8 +36,8 @@ class ImageCaptionDataset(Dataset):
 
 
         self.inmodal = inmodal
-        if(inmodal):
-            self.augment_captions = processor.process_text([_augment_text(caption) for caption in df[caption_key].tolist()])
+        # if(inmodal):
+        #     self.augment_captions = processor.process_text([_augment_text(caption) for caption in df[caption_key].tolist()])
 
         logging.debug("Loaded data")
 
@@ -50,8 +50,8 @@ class ImageCaptionDataset(Dataset):
         if(self.inmodal):
             item["input_ids"] = self.captions["input_ids"][idx], self.augment_captions["input_ids"][idx]
             item["attention_mask"] = self.captions["attention_mask"][idx], self.augment_captions["attention_mask"][idx]
-            item["pixel_values"] = self.processor.process_image(Image.open(os.path.join(self.root, self.images[idx]))), \
-                                   self.processor.process_image(_augment_image(os.path.join(self.root, self.images[idx])))
+            # item["pixel_values"] = self.processor.process_image(Image.open(os.path.join(self.root, self.images[idx]))), \
+            #                        self.processor.process_image(_augment_image(os.path.join(self.root, self.images[idx])))
             return item["pixel_values"][0], item["input_ids"], idx, item["attention_mask"], item["pixel_values"][1]
         else:
             item["input_ids"] = self.captions["input_ids"][idx]
