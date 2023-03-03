@@ -78,9 +78,9 @@ class Kettle():
                     text_input_ids, text_attention_mask = text_tokens["input_ids"].to(self.setup['device']), \
                                                           text_tokens["attention_mask"].to(self.setup['device'])
                     class_input_ids.append(text_input_ids)
-                    # class_attention_masks.append(text_attention_mask)
+                    class_attention_masks.append(text_attention_mask)
                 self.class_input_ids = torch.cat(class_input_ids, dim=0).to(self.setup['device'])
-                # self.class_attention_masks = torch.cat(class_attention_masks, dim=0).to(self.setup['device'])
+                self.class_attention_masks = torch.cat(class_attention_masks, dim=0).to(self.setup['device'])
         else:
             self.trainset, self.validset = self.prepare_data(normalize=True)
 

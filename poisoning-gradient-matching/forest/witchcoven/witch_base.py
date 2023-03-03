@@ -86,7 +86,7 @@ class _Witch():
         self.intended_classes = torch.tensor(kettle.poison_setup['intended_class']).to(device=self.setup['device'], dtype=torch.long)
         self.true_classes = torch.tensor([data[1] for data in kettle.targetset]).to(device=self.setup['device'], dtype=torch.long)
         self.intended_class_caption_ids = kettle.class_input_ids[self.intended_classes].to(device=self.setup['device'])
-
+        self.intended_class_attn_masks = kettle.class_attention_masks[self.intended_classes].to(device=self.setup['device'])
         pdb.set_trace()
         print()
         # Precompute target gradients
