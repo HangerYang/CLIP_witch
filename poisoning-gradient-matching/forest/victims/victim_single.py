@@ -119,7 +119,8 @@ class _VictimSingle(_VictimBase):
             loss = self.criterion(self.model(images), labels)
         else:
             loss = criterion(self.model(images), labels)
-        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True)
+        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True, allow_unused=True)
+        pdb.set_trace()
         grad_norm = 0
         for grad in gradients:
             grad_norm += grad.detach().pow(2).sum()
