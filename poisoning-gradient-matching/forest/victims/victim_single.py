@@ -37,7 +37,7 @@ class _VictimSingle(_VictimBase):
             self.ctx_size = self.model.context_length
         self.model.to(**self.setup)
         if torch.cuda.device_count() > 1: # remove comment after debugging
-            self.model = torch.nn.DataParallel(self.model, [0])
+            self.model = torch.nn.DataParallel(self.model, [0, 1])
         print(f'{self.args.net[0]} model initialized with random key {self.model_init_seed}.')
 
     """ METHODS FOR (CLEAN) TRAINING AND TESTING OF BREWED POISONS"""
