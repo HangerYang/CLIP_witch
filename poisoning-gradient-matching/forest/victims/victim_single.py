@@ -107,7 +107,7 @@ class _VictimSingle(_VictimBase):
             image_embeds, text_embeds  = self.model(input_ids=labels, attention_mask=attention_mask, pixel_values=images)
             # image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
             # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
-            probs = torch.diagonal(image_embeds @ text_embeds.T)
+            probs = torch.diagonal(image_embeds.to(**self.setup) @ text_embeds.T.to(**self.setup)).to(**self.setup)
             # pdb.set_trace()
 
             loss = criterion(probs, torch.ones_like(probs).to(**self.setup))
