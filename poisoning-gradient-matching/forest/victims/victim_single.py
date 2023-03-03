@@ -107,8 +107,8 @@ class _VictimSingle(_VictimBase):
     def gradient(self, images, labels, criterion=None, attention_mask=None):
         """Compute the gradient of criterion(model) w.r.t to given data."""
         if 'CLIP' in self.args.net[0]:
-            self.model.to(self.setup['device'])
-            image_embeds, text_embeds  = self.model(input_ids=labels.to(self.setup['device']), attention_mask=attention_mask.to(self.setup['device']), pixel_values=images.to(self.setup['device']))
+            # self.model.to(self.setup['device'])
+            image_embeds, text_embeds  = self.model(input_ids=labels, attention_mask=attention_mask, pixel_values=images)
             # image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
             # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
             probs = torch.diagonal(image_embeds.to(**self.setup) @ text_embeds.T.to(**self.setup)).to(**self.setup)
@@ -119,15 +119,15 @@ class _VictimSingle(_VictimBase):
             loss = self.criterion(self.model(images), labels)
         else:
             loss = criterion(self.model(images), labels)
-        for name, param in self.model.named_parameters():
-            if param.requires_grad:
-                try:
-                    temp = torch.autograd.grad(loss, param, retain_graph=True)
-                except RuntimeError as e:
-                    print('----------', e)
-                    print(name)
-        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True, retain_graph=True, allow_unused=True)
-        pdb.set_trace()
+        # for name, param in self.model.named_parameters():
+        #     if param.requires_grad:
+        #         try:
+        #             temp = torch.autograd.grad(loss, param, retain_graph=True)
+        #         except RuntimeError as e:
+        #             print('----------', e)
+        #             print(name)
+        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True, allow_unused=True)
+        # pdb.set_trace()
         grad_norm = 0
         for grad in gradients:
             grad_norm += grad.detach().pow(2).sum()
