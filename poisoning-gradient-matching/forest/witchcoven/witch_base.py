@@ -88,6 +88,7 @@ class _Witch():
         self.intended_class_caption_ids = kettle.class_input_ids[self.intended_classes].to(device=self.setup['device'])
 
         pdb.set_trace()
+        print()
         # Precompute target gradients
         if self.args.target_criterion in ['cw', 'carlini-wagner']:
             self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_classes, cw_loss)
