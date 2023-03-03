@@ -129,7 +129,7 @@ class _VictimSingle(_VictimBase):
                     print(name)
                     print(count)
             count += 1
-        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True, allow_unused=True)
+        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True,retain_graph=True, allow_unused=True)
         # pdb.set_trace()
         grad_norm = 0
         count = 0
