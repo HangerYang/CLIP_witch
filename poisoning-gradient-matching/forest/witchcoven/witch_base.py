@@ -87,8 +87,8 @@ class _Witch():
         self.true_classes = torch.tensor([data[1] for data in kettle.targetset]).to(device=self.setup['device'], dtype=torch.long)
         self.intended_class_caption_ids = kettle.class_input_ids[self.intended_classes].to(device=self.setup['device'])
         self.intended_class_attn_masks = kettle.class_attention_masks[self.intended_classes].to(device=self.setup['device'])
-        pdb.set_trace()
-        print()
+        # pdb.set_trace()
+        # print()
         # Precompute target gradients
         if self.args.target_criterion in ['cw', 'carlini-wagner']:
             self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_classes, cw_loss)
@@ -147,7 +147,7 @@ class _Witch():
                                                                                             self.args.attackiter // 1.142], gamma=0.1)
             poison_delta.grad = torch.zeros_like(poison_delta)
             poison_delta_text.grad = torch.zeros_like(poison_delta_text)
-            pdb.set_trace()
+            # pdb.set_trace()
             dm, ds = kettle.dm.to(device=torch.device('cpu')), kettle.ds.to(device=torch.device('cpu'))
             poison_bounds = torch.zeros_like(poison_delta)
         else:

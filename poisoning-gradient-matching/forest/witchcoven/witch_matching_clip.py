@@ -28,13 +28,14 @@ class WitchGradientMatchingClip(_Witch):
         # In distributed brewing, this is a synchronization operation
         images, token_ids, poison_slices, batch_positions, randgen = victim.distributed_control(
             images, token_ids, poison_slices, batch_positions)
-        pdb.set_trace()
+        # pdb.set_trace()
         if len(batch_positions) > 0:
             delta_slice = poison_delta[poison_slices].detach().to(**self.setup)
             delta_slice_text = poison_delta_text[poison_slices].detach().to(**self.setup)
             if self.args.clean_grad:
                 delta_slice = torch.zeros_like(delta_slice)
             delta_slice.requires_grad_()
+            delta_slice_text.requires_grad_()
             poison_images = images[batch_positions]
             images[batch_positions] += delta_slice
 
