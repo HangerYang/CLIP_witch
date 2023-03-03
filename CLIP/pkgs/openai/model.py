@@ -296,14 +296,14 @@ class CLIP(nn.Module):
         self.ln_final = LayerNorm(transformer_width)
 
         self.text_projection = nn.Parameter(torch.empty(transformer_width, embed_dim))
-        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+        # self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
         self.initialize_parameters()
 
     def initialize_parameters(self):
         nn.init.normal_(self.token_embedding.weight, std=0.02)
         nn.init.normal_(self.positional_embedding, std=0.01)
-        self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
+        # self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
 
         if isinstance(self.visual, ModifiedResNet):
             if self.visual.attnpool is not None:
