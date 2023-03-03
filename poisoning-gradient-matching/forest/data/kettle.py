@@ -593,7 +593,7 @@ class Kettle():
             _, h, w = self.trainset[0][0].shape
             training_data = np.zeros([len(self.trainset), h, w, 3])
             if self.multimodal:
-                labels = np.zeros(len(self.trainset), poison_delta_text.shape[1], poison_delta_text.shape[2])
+                labels = np.zeros((len(self.trainset), poison_delta_text.shape[1], poison_delta_text.shape[2]))
             else:
                 labels = np.zeros(len(self.trainset))
 
