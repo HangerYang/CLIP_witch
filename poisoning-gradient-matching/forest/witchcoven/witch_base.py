@@ -85,7 +85,7 @@ class _Witch():
         self.targets = torch.stack([data[0] for data in kettle.targetset], dim=0).to(**self.setup)
         self.intended_classes = torch.tensor(kettle.poison_setup['intended_class']).to(device=self.setup['device'], dtype=torch.long)
         self.true_classes = torch.tensor([data[1] for data in kettle.targetset]).to(device=self.setup['device'], dtype=torch.long)
-        self.intended_class_caption_ids = kettle.class_input_ids[self.intended_classes]
+        self.intended_class_caption_ids = kettle.class_input_ids[self.intended_classes].to(device=self.setup['device'])
 
 
         # Precompute target gradients
