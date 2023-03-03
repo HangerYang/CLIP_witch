@@ -188,9 +188,9 @@ class _Witch():
 
             target_losses = target_losses / (batch + 1)
             poison_acc = poison_correct / len(dataloader.dataset)
-            # if step % (self.args.attackiter // 5) == 0 or step == (self.args.attackiter - 1):
-            #     print(f'Iteration {step}: Target loss is {target_losses:2.4f}, '
-            #           f'Poison clean acc is {poison_acc * 100:2.2f}%')
+            if step % (self.args.attackiter // 5) == 0 or step == (self.args.attackiter - 1):
+                print(f'Iteration {step}: Target loss is {target_losses:2.4f}, '
+                      f'Poison clean acc is {poison_acc * 100:2.2f}%')
 
             if self.args.step:
                 if self.args.clean_grad:
