@@ -347,7 +347,7 @@ class CLIP(nn.Module):
         return self.visual(pixel_values.type(self.dtype))
 
     def get_text_features(self, input_ids = None, attention_mask = None, text_delta=None):
-        pdb.set_trace()
+        # pdb.set_trace()
         x = self.token_embedding(input_ids).type(self.dtype)  # [batch_size, n_ctx, d_model]
         if text_delta is not None:
             x += text_delta
