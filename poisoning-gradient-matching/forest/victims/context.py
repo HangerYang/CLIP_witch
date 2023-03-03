@@ -8,8 +8,8 @@ class GPUContext():
         """Init with setup info."""
         self.setup = setup
         self.model = model.to(**self.setup)
-        if torch.cuda.device_count() > 1:
-            self.model = torch.nn.DataParallel(self.model)
+        # if torch.cuda.device_count() > 1:
+        #     self.model = torch.nn.DataParallel(self.model)
 
     def __enter__(self):
         """Enter."""
