@@ -36,7 +36,7 @@ class _VictimSingle(_VictimBase):
         if hasattr(self.model, "context_length"):
             self.ctx_size = self.model.context_length
         self.model.to(**self.setup)
-        # self.model = torch.nn.DataParallel(self.model)
+        self.model = torch.nn.DataParallel(self.model)
         # self.model = self.model.module
 
         # if torch.cuda.device_count() > 1: # remove comment after debugging
