@@ -42,7 +42,7 @@ class _Witch():
             if len(kettle.targetset) > 0:
                 if self.args.eps > 0:
                     if self.args.budget > 0:
-                        poison_delta = self._brew(victim, kettle)
+                        poison_delta, poison_delta_text = self._brew(victim, kettle)
                     else:
                         poison_delta = kettle.initialize_poison(initializer='zero')
                         warnings.warn('No poison budget given. Nothing can be poisoned.')
@@ -56,18 +56,19 @@ class _Witch():
             poison_delta = kettle.initialize_poison(initializer='zero')
             warnings.warn('Poison set is empty. Nothing can be poisoned.')
 
-        return poison_delta
+        return poison_delta, poison_delta_text
 
     def _brew(self, victim, kettle):
         """Run generalized iterative routine."""
         print(f'Starting brewing procedure ...')
         self._initialize_brew(victim, kettle)
-        poisons, scores = [], torch.ones(self.args.restarts) * 10_000
+        poisons, poisons_text, scores = [], [], torch.ones(self.args.restarts) * 10_000
 
         for trial in range(self.args.restarts):
-            poison_delta, target_losses = self._run_trial(victim, kettle)
+            poison_delta, poison_delta_text, target_losses = self._run_trial(victim, kettle)
             scores[trial] = target_losses
             poisons.append(poison_delta.detach())
+            poisons_text.append(poison_delta_text.detach())
             if self.args.dryrun:
                 break
 
@@ -75,8 +76,9 @@ class _Witch():
         self.stat_optimal_loss = scores[optimal_score].item()
         print(f'Poisons with minimal target loss {self.stat_optimal_loss:6.4e} selected.')
         poison_delta = poisons[optimal_score]
+        poison_delta_text = poisons_text[optimal_score]
 
-        return poison_delta
+        return poison_delta, poison_delta_text
 
 
     def _initialize_brew(self, victim, kettle):
@@ -199,7 +201,7 @@ class _Witch():
             if self.args.dryrun:
                 break
 
-        return poison_delta, target_losses
+        return poison_delta, poison_delta_text, target_losses
 
 
 

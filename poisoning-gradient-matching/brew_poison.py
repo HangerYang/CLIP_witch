@@ -31,11 +31,11 @@ if __name__ == "__main__":
         stats_clean = model.train(data, max_epoch=args.max_epoch)
     train_time = time.time()
 
-    poison_delta = witch.brew(model, data)
+    poison_delta, poison_delta_text = witch.brew(model, data)
     brew_time = time.time()
 
     if not args.pretrained and args.retrain_from_init:
-        stats_rerun = model.retrain(data, poison_delta)
+        stats_rerun = model.retrain(data, poison_delta, poison_delta_text)
     else:
         stats_rerun = None  # we dont know the initial seed for a pretrained model so retraining makes no sense
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     # Export
     if args.save is not None:
-        data.export_poison(poison_delta, path=args.poison_path, mode=args.save)
+        data.export_poison(poison_delta, poison_delta_text, path=args.poison_path, mode=args.save)
 
     print(datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p"))
     print('---------------------------------------------------')
