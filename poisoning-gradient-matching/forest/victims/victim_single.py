@@ -111,10 +111,10 @@ class _VictimSingle(_VictimBase):
             image_embeds, text_embeds  = self.model(input_ids=labels, attention_mask=attention_mask, pixel_values=images)
             # image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
             # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
-            probs = torch.diagonal(image_embeds.to(**self.setup) @ text_embeds.T.to(**self.setup)).to(**self.setup)
+            probs = torch.diagonal(image_embeds @ text_embeds.T)
             # pdb.set_trace()
 
-            loss = criterion(probs, torch.ones_like(probs).to(**self.setup))
+            loss = criterion(probs, torch.ones_like(probs))
         elif criterion is None:
             loss = self.criterion(self.model(images), labels)
         else:
@@ -129,17 +129,17 @@ class _VictimSingle(_VictimBase):
         #             print(name)
         #             print(count)
         #     count += 1
-        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True, allow_unused=True)
+        gradients = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True)
         # pdb.set_trace()
         grad_norm = 0
-        count = 0
+        # count = 0
         for grad in gradients:
             try:
                 grad_norm += grad.detach().pow(2).sum()
             except AttributeError as e:
                 print(e)
-                print(count)
-            count += 1
+                # print(count)
+            # count += 1
         grad_norm = grad_norm.sqrt()
         return gradients, grad_norm
 
