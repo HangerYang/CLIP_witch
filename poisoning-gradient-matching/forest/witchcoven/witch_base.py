@@ -7,7 +7,7 @@ from torch.nn import BCELoss
 from ..utils import cw_loss
 from ..consts import NON_BLOCKING, BENCHMARK
 torch.backends.cudnn.benchmark = BENCHMARK
-
+from tqdm import tqdm
 class _Witch():
     """Brew poison with given arguments.
 
@@ -153,7 +153,7 @@ class _Witch():
         else:
             poison_bounds = None
 
-        for step in range(self.args.attackiter):
+        for step in tqdm(range(self.args.attackiter)):
             target_losses = 0
             poison_correct = 0
             for batch, example in enumerate(dataloader):
