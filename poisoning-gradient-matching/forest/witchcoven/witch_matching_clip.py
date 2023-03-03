@@ -108,6 +108,9 @@ class WitchGradientMatchingClip(_Witch):
 
         for i in indices:
             if self.args.loss in ['scalar_product', *SIM_TYPE]:
+                if target_grad[i] is None:
+                    print("Target gradient is None at indice %d, 2 is logit_scale" % i)
+                    continue
                 passenger_loss -= (target_grad[i] * poison_grad[i]).sum()
             elif self.args.loss == 'cosine1':
                 passenger_loss -= torch.nn.functional.cosine_similarity(target_grad[i].flatten(), poison_grad[i].flatten(), dim=0)
@@ -125,10 +128,8 @@ class WitchGradientMatchingClip(_Witch):
                     if target_grad[i] is None:
                         print("Target gradient is None at indice %d, 2 is logit_scale" %i)
                         continue
-                    try:
-                        passenger_loss += self.args.repel * (target_grad[i] * poison_grad[i]).sum()
-                    except TypeError:
-                        pdb.set_trace()
+                    passenger_loss += self.args.repel * (target_grad[i] * poison_grad[i]).sum()
+
                 elif self.args.loss == 'cosine1':
                     passenger_loss -= self.args.repel * torch.nn.functional.cosine_similarity(target_grad[i].flatten(), poison_grad[i].flatten(), dim=0)
                 elif self.args.loss == 'SE':
