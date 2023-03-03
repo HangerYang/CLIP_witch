@@ -120,16 +120,16 @@ class _VictimSingle(_VictimBase):
         else:
             loss = criterion(self.model(images), labels)
         count = 0
-        for name, param in self.model.named_parameters():
-            if param.requires_grad:
-                try:
-                    temp = torch.autograd.grad(loss, param, retain_graph=True)
-                except RuntimeError as e:
-                    print('----------', e)
-                    print(name)
-                    print(count)
-            count += 1
-        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True,retain_graph=True, allow_unused=True)
+        # for name, param in self.model.named_parameters():
+        #     if param.requires_grad:
+        #         try:
+        #             temp = torch.autograd.grad(loss, param, retain_graph=True)
+        #         except RuntimeError as e:
+        #             print('----------', e)
+        #             print(name)
+        #             print(count)
+        #     count += 1
+        gradients = torch.autograd.grad(loss, self.model.parameters(), only_inputs=True, allow_unused=True)
         # pdb.set_trace()
         grad_norm = 0
         count = 0
