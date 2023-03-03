@@ -39,33 +39,33 @@ if __name__ == "__main__":
     else:
         stats_rerun = None  # we dont know the initial seed for a pretrained model so retraining makes no sense
 
-    if args.vnet is not None:  # Validate the transfer model given by args.vnet
-        train_net = args.net
-        args.net = args.vnet
-        if args.vruns > 0:
-            model = forest.Victim(args, setup=setup)
-            stats_results = model.validate(data, poison_delta)
-        else:
-            stats_results = None
-        args.net = train_net
-    else:  # Validate the main model
-        if args.vruns > 0:
-            stats_results = model.validate(data, poison_delta)
-        else:
-            stats_results = None
+    # if args.vnet is not None:  # Validate the transfer model given by args.vnet
+    #     train_net = args.net
+    #     args.net = args.vnet
+    #     if args.vruns > 0:
+    #         model = forest.Victim(args, setup=setup)
+    #         stats_results = model.validate(data, poison_delta)
+    #     else:
+    #         stats_results = None
+    #     args.net = train_net
+    # else:  # Validate the main model
+    #     if args.vruns > 0:
+    #         stats_results = model.validate(data, poison_delta)
+    #     else:
+    #         stats_results = None
     test_time = time.time()
 
 
 
 
 
-    timestamps = dict(train_time=str(datetime.timedelta(seconds=train_time - start_time)).replace(',', ''),
-                      brew_time=str(datetime.timedelta(seconds=brew_time - train_time)).replace(',', ''),
-                      test_time=str(datetime.timedelta(seconds=test_time - brew_time)).replace(',', ''))
+    # timestamps = dict(train_time=str(datetime.timedelta(seconds=train_time - start_time)).replace(',', ''),
+    #                   brew_time=str(datetime.timedelta(seconds=brew_time - train_time)).replace(',', ''),
+    #                   test_time=str(datetime.timedelta(seconds=test_time - brew_time)).replace(',', ''))
     # Save run to table
-    results = (stats_clean, stats_rerun, stats_results)
-    forest.utils.record_results(data, witch.stat_optimal_loss, results,
-                                args, model.defs, model.model_init_seed, extra_stats=timestamps)
+    # results = (stats_clean, stats_rerun, stats_results)
+    # forest.utils.record_results(data, witch.stat_optimal_loss, results,
+    #                             args, model.defs, model.model_init_seed, extra_stats=timestamps)
 
     # Export
     if args.save is not None:
