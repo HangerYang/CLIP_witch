@@ -82,7 +82,7 @@ class WitchGradientMatchingClip(_Witch):
             poison_loss = criterion(probs, torch.ones_like(probs))
 
             prediction = (probs > 0.5).sum()
-            poison_grad = torch.autograd.grad(poison_loss, model.parameters(), retain_graph=True, create_graph=True)
+            poison_grad = torch.autograd.grad(poison_loss, model.parameters(), retain_graph=True, allow_unused=True, create_graph=True)
 
             passenger_loss = self._passenger_loss(poison_grad, target_grad, target_gnorm)
             if self.args.centreg != 0:
