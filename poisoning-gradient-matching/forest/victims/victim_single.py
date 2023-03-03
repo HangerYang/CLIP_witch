@@ -36,8 +36,8 @@ class _VictimSingle(_VictimBase):
         if hasattr(self.model, "context_length"):
             self.ctx_size = self.model.context_length
         self.model.to(**self.setup)
-        self.model = torch.nn.DataParallel(self.model)
-        self.model = self.model.module
+        # self.model = torch.nn.DataParallel(self.model)
+        # self.model = self.model.module
 
         # if torch.cuda.device_count() > 1: # remove comment after debugging
         #     self.model = torch.nn.DataParallel(self.model)
@@ -108,7 +108,7 @@ class _VictimSingle(_VictimBase):
         """Compute the gradient of criterion(model) w.r.t to given data."""
         if 'CLIP' in self.args.net[0]:
             self.model.to(self.setup['device'])
-            image_embeds, text_embeds  = self.model(input_ids=labels.to(self.setup['device']), attention_mask=attention_mask, pixel_values=images.to(self.setup['device']))
+            image_embeds, text_embeds  = self.model(input_ids=labels.to(self.setup['device']), attention_mask=attention_mask.to(self.setup['device']), pixel_values=images.to(self.setup['device']))
             # image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
             # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
             probs = torch.diagonal(image_embeds.to(**self.setup) @ text_embeds.T.to(**self.setup)).to(**self.setup)
