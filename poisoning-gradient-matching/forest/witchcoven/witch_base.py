@@ -100,7 +100,8 @@ class _Witch():
             self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_classes)
         elif self.args.target_criterion in ['binary']:
             self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_class_caption_ids,
-                                                                  criterion=self.binary_loss)
+                                                                  criterion=self.binary_loss,
+                                                                  attention_mask=self.intended_class_attn_masks)
         else:
             raise ValueError('Invalid target criterion chosen ...')
         print(f'Target Grad Norm is {self.target_gnorm}')
