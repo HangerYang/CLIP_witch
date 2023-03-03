@@ -494,7 +494,7 @@ class Kettle():
 
     """ EXPORT METHODS """
 
-    def export_poison(self, poison_delta, path=None, mode='automl'):
+    def export_poison(self, poison_delta, poison_delta_text, path=None, mode='automl'):
         """Export poisons in either packed mode (just ids and raw data) or in full export mode, exporting all images.
 
         In full export mode, export data into folder structure that can be read by a torchvision.datasets.ImageFolder
@@ -592,16 +592,24 @@ class Kettle():
         elif mode == 'numpy':
             _, h, w = self.trainset[0][0].shape
             training_data = np.zeros([len(self.trainset), h, w, 3])
-            labels = np.zeros(len(self.trainset))
-            for input, label, idx in self.trainset:
+            if self.multimodal:
+                labels = np.zeros(len(self.trainset), poison_delta_text.shape[1], poison_delta_text.shape[2])
+            else:
+                labels = np.zeros(len(self.trainset))
+
+            for input, label, idx, _ in self.trainset:
                 lookup = self.poison_lookup.get(idx)
                 if lookup is not None:
                     input += poison_delta[lookup, :, :, :]
-                training_data[idx] = np.asarray(_torch_to_PIL(input))
-                labels[idx] = label
+                    labels[idx] = poison_delta_text[lookup, :, :]
 
-            np.save(os.path.join(path, 'poisoned_training_data.npy'), training_data)
-            np.save(os.path.join(path, 'poisoned_training_labels.npy'), labels)
+                training_data[idx] = np.asarray(_torch_to_PIL(input))
+                if not self.multimodal:
+                  labels[idx] = label
+
+            prefix = self.args.train_data.split('/')[-1].split('.')[0]
+            np.save(os.path.join(path, prefix + '_poisoned_training_data.npy'), training_data)
+            np.save(os.path.join(path, prefix + '_poisoned_training_labels.npy'), labels)
 
         elif mode == 'kettle-export':
             with open(f'kette_{self.args.dataset}{self.args.model}.pkl', 'wb') as file:
