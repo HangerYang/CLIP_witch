@@ -80,7 +80,7 @@ class Kettle():
                                                           text_tokens["attention_mask"].to(self.setup['device'])
                     class_input_ids.append(text_input_ids)
                     class_attention_masks.append(text_attention_mask)
-                self.class_input_ids = torch.cat(class_input_ids, dim=0).to(self.setup['device'])
+                self.class_input_ids = torch.stack(class_input_ids, dim=0).to(self.setup['device'])
                 pdb.set_trace()
                 self.class_attention_masks = torch.cat(class_attention_masks, dim=0).to(self.setup['device'])
         else:
