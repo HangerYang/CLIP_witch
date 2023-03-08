@@ -509,9 +509,9 @@ class Kettle():
         google storage.
         """
         prefix = self.args.train_data.split('/')[-1].split('.')[0]
-        with open(os.path.join(path, prefix + '_target_ids.log')) as f:
+        with open(os.path.join(path, prefix + '_target_ids.log'), 'w') as f:
             f.write(self.target_ids)
-            
+
         if path is None:
             path = self.args.poison_path
 
