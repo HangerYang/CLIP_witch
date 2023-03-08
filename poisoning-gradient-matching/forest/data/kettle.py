@@ -508,6 +508,10 @@ class Kettle():
         In automl export mode, export data into a single folder and produce a csv file that can be uploaded to
         google storage.
         """
+        prefix = self.args.train_data.split('/')[-1].split('.')[0]
+        with open(os.path.join(path, prefix + '_target_ids.log')) as f:
+            f.write(self.target_ids)
+            
         if path is None:
             path = self.args.poison_path
 
