@@ -19,6 +19,7 @@ def options():
                                                                                     'watermarking', 'poison-frogs', 'metapoison', 'bullseye',
                                                                                     'gradient-matching-clip'])
     parser.add_argument('--threatmodel', default='random-subset', type=str, choices=['single-class', 'third-party', 'random-subset'])
+    parser.add_argument('--twomodals', action='store_true', help='Whether to poison both modalities.')
 
     # Reproducibility management:
     parser.add_argument('--poisonkey', default=None, type=str, help='Initialize poison setup with this key.')  # Also takes a triplet 0-3-1

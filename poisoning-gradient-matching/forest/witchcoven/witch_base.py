@@ -68,7 +68,9 @@ class _Witch():
             poison_delta, poison_delta_text, target_losses = self._run_trial(victim, kettle)
             scores[trial] = target_losses
             poisons.append(poison_delta.detach())
-            poisons_text.append(poison_delta_text.detach())
+
+            if poison_delta_text is not None:
+                poisons_text.append(poison_delta_text.detach())
             if self.args.dryrun:
                 break
 
@@ -76,7 +78,8 @@ class _Witch():
         self.stat_optimal_loss = scores[optimal_score].item()
         print(f'Poisons with minimal target loss {self.stat_optimal_loss:6.4e} selected.')
         poison_delta = poisons[optimal_score]
-        poison_delta_text = poisons_text[optimal_score]
+        if poisons_text:
+            poison_delta_text = poisons_text[optimal_score]
 
         return poison_delta, poison_delta_text
 
@@ -144,14 +147,18 @@ class _Witch():
         if self.args.attackoptim in ['Adam', 'signAdam', 'momSGD', 'momPGD']:
             # poison_delta.requires_grad_()
             if self.args.attackoptim in ['Adam', 'signAdam']:
-                att_optimizer = torch.optim.Adam([poison_delta, poison_delta_text], lr=self.tau0, weight_decay=0)
+                params = [poison_delta]
+                if poison_delta_text is not None:
+                    params.append(poison_delta_text)
+                att_optimizer = torch.optim.Adam(params, lr=self.tau0, weight_decay=0)
             else:
                 att_optimizer = torch.optim.SGD([poison_delta, poison_delta_text], lr=self.tau0, momentum=0.9, weight_decay=0)
             if self.args.scheduling:
                 scheduler = torch.optim.lr_scheduler.MultiStepLR(att_optimizer, milestones=[self.args.attackiter // 2.667, self.args.attackiter // 1.6,
                                                                                             self.args.attackiter // 1.142], gamma=0.1)
             poison_delta.grad = torch.zeros_like(poison_delta)
-            poison_delta_text.grad = torch.zeros_like(poison_delta_text)
+            if poison_delta_text is not None:
+                poison_delta_text.grad = torch.zeros_like(poison_delta_text)
             # pdb.set_trace()
             dm, ds = kettle.dm.to(device=torch.device('cpu')), kettle.ds.to(device=torch.device('cpu'))
             poison_bounds = torch.zeros_like(poison_delta)
@@ -176,7 +183,8 @@ class _Witch():
             if self.args.attackoptim in ['Adam', 'signAdam', 'momSGD', 'momPGD']:
                 if self.args.attackoptim in ['momPGD', 'signAdam']:
                     poison_delta.grad.sign_()
-                    poison_delta_text.grad.sign_()
+                    if poison_delta_text is not None:
+                        poison_delta_text.grad.sign_()
                 att_optimizer.step()
                 if self.args.scheduling:
                     scheduler.step()

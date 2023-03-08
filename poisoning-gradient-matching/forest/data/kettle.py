@@ -476,7 +476,8 @@ class Kettle():
         elif initializer == 'randn':
             init = torch.randn(len(self.poison_ids), *self.trainset[0][0].shape)
             init *= self.args.eps / ds / 255
-            init_text = torch.randn(len(self.poison_ids), self.ctx_size, self.embedding_size)
+            if self.args.twomodals:
+                init_text = torch.randn(len(self.poison_ids), self.ctx_size, self.embedding_size)
         elif initializer == 'normal':
             init = torch.randn(len(self.poison_ids), *self.trainset[0][0].shape)
         else:
@@ -595,7 +596,9 @@ class Kettle():
             _, h, w = self.trainset[0][0].shape
             training_data = np.zeros([len(self.trainset), h, w, 3])
             if self.multimodal:
-                labels = np.zeros((len(self.trainset), poison_delta_text.shape[1], poison_delta_text.shape[2]))
+                labels = None
+                if poison_delta_text is not None:
+                    labels = np.zeros((len(self.trainset), poison_delta_text.shape[1], poison_delta_text.shape[2]))
             else:
                 labels = np.zeros(len(self.trainset))
 
@@ -603,7 +606,8 @@ class Kettle():
                 lookup = self.poison_lookup.get(idx)
                 if lookup is not None:
                     input += poison_delta[lookup, :, :, :]
-                    labels[idx] = poison_delta_text[lookup, :, :]
+                    if poison_delta_text is not None:
+                        labels[idx] = poison_delta_text[lookup, :, :]
 
                 training_data[idx] = np.asarray(_torch_to_PIL(input))
                 if not self.multimodal:
@@ -611,7 +615,8 @@ class Kettle():
 
             prefix = self.args.train_data.split('/')[-1].split('.')[0]
             np.save(os.path.join(path, prefix + '_poisoned_training_data.npy'), training_data)
-            np.save(os.path.join(path, prefix + '_poisoned_training_labels.npy'), labels)
+            if poison_delta_text is not None:
+                np.save(os.path.join(path, prefix + '_poisoned_training_labels.npy'), labels)
 
         elif mode == 'kettle-export':
             with open(f'kette_{self.args.dataset}{self.args.model}.pkl', 'wb') as file:

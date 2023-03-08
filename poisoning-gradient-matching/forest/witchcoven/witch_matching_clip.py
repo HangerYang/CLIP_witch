@@ -52,7 +52,7 @@ class WitchGradientMatchingClip(_Witch):
             loss, prediction = victim.compute(closure, self.target_grad, self.target_gnorm)
             delta_slice = victim.sync_gradients(delta_slice)
 
-            if delta_slice_text:
+            if delta_slice_text is not None:
                 delta_slice_text = victim.sync_gradients(delta_slice_text)
 
             if self.args.clean_grad:
@@ -66,7 +66,7 @@ class WitchGradientMatchingClip(_Witch):
                 poison_delta[poison_slices] = delta_slice.detach().to(device=torch.device('cpu'))
             elif self.args.attackoptim in ['Adam', 'signAdam', 'momSGD', 'momPGD']:
                 poison_delta.grad[poison_slices] = delta_slice.grad.detach().to(device=torch.device('cpu'))
-                if delta_slice_text:
+                if delta_slice_text is not None:
                     poison_delta_text.grad[poison_slices] = delta_slice_text.grad.detach().to(device=torch.device('cpu'))
 
                 poison_bounds[poison_slices] = poison_images.detach().to(device=torch.device('cpu'))
