@@ -617,9 +617,11 @@ class Kettle():
                   labels[idx] = label
 
             prefix = self.args.train_data.split('/')[-1].split('.')[0]
-            np.save(os.path.join(path, prefix + '_poisoned_training_data.npy'), training_data)
+            np.save(os.path.join(path, prefix + '_poisoned_training_data_targetclass_%d_intendedclass_%d.npy'
+                                 % (self.poison_setup['target_class'], self.poison_setup['intended_class'][0])), training_data)
             if poison_delta_text is not None:
-                np.save(os.path.join(path, prefix + '_poisoned_training_labels.npy'), labels)
+                np.save(os.path.join(path, prefix + '_poisoned_training_labels_targetclass_%d_intendedclass_%d.npy'
+                                     % (self.poison_setup['target_class'], self.poison_setup['intended_class'][0])), labels)
 
         elif mode == 'kettle-export':
             with open(f'kette_{self.args.dataset}{self.args.model}.pkl', 'wb') as file:
