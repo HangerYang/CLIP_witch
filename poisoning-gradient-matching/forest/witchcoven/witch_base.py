@@ -89,6 +89,7 @@ class _Witch():
         self.intended_classes = torch.tensor(kettle.poison_setup['intended_class']).to(device=self.setup['device'], dtype=torch.long)
         self.true_classes = torch.tensor([data[1] for data in kettle.targetset]).to(device=self.setup['device'], dtype=torch.long)
         self.intended_class_caption_ids = kettle.class_input_ids[self.intended_classes].to(device=self.setup['device'])
+        pdb.set_trace()
         self.intended_class_attn_masks = kettle.class_attention_masks[self.intended_classes].to(device=self.setup['device'])
         # pdb.set_trace()
         # print()
@@ -105,6 +106,7 @@ class _Witch():
             self.target_grad, self.target_gnorm = victim.gradient(self.targets, self.intended_class_caption_ids,
                                                                   criterion=self.binary_loss,
                                                                   attention_mask=self.intended_class_attn_masks)
+            pdb.set_trace()
         else:
             raise ValueError('Invalid target criterion chosen ...')
         print(f'Target Grad Norm is {self.target_gnorm}')

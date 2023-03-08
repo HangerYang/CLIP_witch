@@ -1,4 +1,5 @@
 """Data class, holding information about dataloaders and poison ids."""
+import pdb
 
 import torch
 import numpy as np
@@ -73,13 +74,14 @@ class Kettle():
                 class_input_ids = []
                 class_attention_masks = []
                 for c in self.validset.classes:
-                    text = [template(c) for template in self.validset.generalTemplates]
+                    text = [template(c) for template in self.validset.templates]
                     text_tokens = processor.process_text(text)
                     text_input_ids, text_attention_mask = text_tokens["input_ids"].to(self.setup['device']), \
                                                           text_tokens["attention_mask"].to(self.setup['device'])
                     class_input_ids.append(text_input_ids)
                     class_attention_masks.append(text_attention_mask)
                 self.class_input_ids = torch.cat(class_input_ids, dim=0).to(self.setup['device'])
+                pdb.set_trace()
                 self.class_attention_masks = torch.cat(class_attention_masks, dim=0).to(self.setup['device'])
         else:
             self.trainset, self.validset = self.prepare_data(normalize=True)

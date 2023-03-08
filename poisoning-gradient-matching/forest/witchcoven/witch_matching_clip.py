@@ -31,11 +31,11 @@ class WitchGradientMatchingClip(_Witch):
         # pdb.set_trace()
         if len(batch_positions) > 0:
             delta_slice = poison_delta[poison_slices].detach().to(**self.setup)
-            delta_slice_text = poison_delta_text[poison_slices].detach().to(**self.setup)
+
             if self.args.clean_grad:
                 delta_slice = torch.zeros_like(delta_slice)
             delta_slice.requires_grad_()
-            delta_slice_text.requires_grad_()
+
             poison_images = images[batch_positions]
             images[batch_positions] += delta_slice
 
@@ -43,11 +43,17 @@ class WitchGradientMatchingClip(_Witch):
             if self.args.paugment:
                 images = kettle.augment(images, randgen=randgen)
 
+            delta_slice_text = None
+            if poison_delta_text is not None:
+                delta_slice_text = poison_delta_text[poison_slices].detach().to(**self.setup)
+                delta_slice_text.requires_grad_()
             # Define the loss objective and compute gradients
             closure = self._define_objective(images, token_ids, attn_masks, delta_slice_text)
             loss, prediction = victim.compute(closure, self.target_grad, self.target_gnorm)
             delta_slice = victim.sync_gradients(delta_slice)
-            delta_slice_text = victim.sync_gradients(delta_slice_text)
+
+            if delta_slice_text:
+                delta_slice_text = victim.sync_gradients(delta_slice_text)
 
             if self.args.clean_grad:
                 delta_slice.data = poison_delta[poison_slices].detach().to(**self.setup)
@@ -60,7 +66,8 @@ class WitchGradientMatchingClip(_Witch):
                 poison_delta[poison_slices] = delta_slice.detach().to(device=torch.device('cpu'))
             elif self.args.attackoptim in ['Adam', 'signAdam', 'momSGD', 'momPGD']:
                 poison_delta.grad[poison_slices] = delta_slice.grad.detach().to(device=torch.device('cpu'))
-                poison_delta_text.grad[poison_slices] = delta_slice_text.grad.detach().to(device=torch.device('cpu'))
+                if delta_slice_text:
+                    poison_delta_text.grad[poison_slices] = delta_slice_text.grad.detach().to(device=torch.device('cpu'))
 
                 poison_bounds[poison_slices] = poison_images.detach().to(device=torch.device('cpu'))
             else:
