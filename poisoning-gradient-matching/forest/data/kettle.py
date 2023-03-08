@@ -510,7 +510,9 @@ class Kettle():
         """
         prefix = self.args.train_data.split('/')[-1].split('.')[0]
         with open(os.path.join(path, prefix + '_target_ids.log'), 'w') as f:
-            f.write(self.target_ids)
+            for id in self.target_ids:
+                f.write(str(id))
+                f.write(',')
 
         if path is None:
             path = self.args.poison_path
