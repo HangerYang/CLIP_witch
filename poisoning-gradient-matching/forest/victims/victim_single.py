@@ -112,7 +112,7 @@ class _VictimSingle(_VictimBase):
             # image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
             # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
             probs = torch.diagonal(image_embeds @ text_embeds.T)
-            # pdb.set_trace()
+            pdb.set_trace()
 
             loss = criterion(probs, torch.ones_like(probs))
         elif criterion is None:
