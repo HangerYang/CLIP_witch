@@ -112,14 +112,14 @@ class _VictimSingle(_VictimBase):
             # image_embeds = clipOutput.image_embeds #normalize(clipOutput.image_embeds)
             # text_embeds = clipOutput.text_embeds #normalize(clipOutput.text_embeds)
             probs = torch.diagonal(image_embeds @ text_embeds.T)
-            pdb.set_trace()
+            assert image_embeds.shape == text_embeds.shape
+            # pdb.set_trace()
 
             loss = criterion(probs, torch.ones_like(probs))
         elif criterion is None:
             loss = self.criterion(self.model(images), labels)
         else:
             loss = criterion(self.model(images), labels)
-        count = 0
         # for name, param in self.model.named_parameters():
         #     if param.requires_grad:
         #         try:
@@ -134,10 +134,10 @@ class _VictimSingle(_VictimBase):
         grad_norm = 0
         # count = 0
         for grad in gradients:
-            try:
-                grad_norm += grad.detach().pow(2).sum()
-            except AttributeError as e:
-                print(e)
+            # try:
+            grad_norm += grad.detach().pow(2).sum()
+            # except AttributeError as e:
+            #     print(e)
                 # print(count)
             # count += 1
         grad_norm = grad_norm.sqrt()
