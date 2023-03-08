@@ -30,6 +30,7 @@ def options():
     parser.add_argument('--eps', default=16, type=float)
     parser.add_argument('--budget', default=0.01, type=float, help='Fraction of training data that is poisoned')
     parser.add_argument('--targets', default=1, type=int, help='Number of targets')
+    parser.add_argument('--targetclass', default=-1, type=int, help='Class of targets')
 
     # Files and folders
     parser.add_argument('--name', default='', type=str, help='Name tag for the result table and possibly for export folders.')

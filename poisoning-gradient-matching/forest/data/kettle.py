@@ -81,7 +81,7 @@ class Kettle():
                     class_input_ids.append(text_input_ids)
                     class_attention_masks.append(text_attention_mask)
                 self.class_input_ids = torch.stack(class_input_ids, dim=0).to(self.setup['device'])
-                pdb.set_trace()
+                # pdb.set_trace()
                 self.class_attention_masks = torch.cat(class_attention_masks, dim=0).to(self.setup['device'])
         else:
             self.trainset, self.validset = self.prepare_data(normalize=True)
@@ -349,7 +349,10 @@ class Kettle():
         """
         num_classes = len(self.validset.classes)
 
-        target_class = np.random.randint(num_classes)
+        if self.args.targetclass < 0:
+            target_class = np.random.randint(num_classes)
+        else:
+            target_class = self.args.targetclass
         list_intentions = list(range(num_classes))
         list_intentions.remove(target_class)
         intended_class = [np.random.choice(list_intentions)] * self.args.targets
