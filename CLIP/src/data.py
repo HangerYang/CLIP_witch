@@ -76,7 +76,7 @@ def get_validation_dataloader(options, processor):
 class ImageLabelDataset(Dataset):
     def __init__(self, root, transform):
         self.root = root
-        df = pd.read_csv(os.path.join(root, "labels.csv"))
+        df = pd.read_csv(os.path.join(root, "labels.csv"), error_bad_lines=False)
         self.images = df["image"]
         self.labels = df["label"]
         self.transform = transform
@@ -103,7 +103,7 @@ def get_eval_test_dataloader(options, processor):
     elif(options.eval_data_type == "FGVCAircraft"):
         dataset = torchvision.datasets.FGVCAircraft(root = os.path.dirname(options.eval_test_data_dir), download = True, split = "test", transform = processor.process_image)
     elif(options.eval_data_type == "Flowers102"):
-        dataset = ImageLabelDataset(root = options.eval_test_data_dir, transform = processor.process_image)
+        dataset = torchvision.datasets.Flowers102(root = os.path.dirname(options.eval_test_data_dir), download = True, split = "test", transform = processor.process_image)
     elif(options.eval_data_type == "Food101"):
         dataset = torchvision.datasets.Food101(root = os.path.dirname(options.eval_test_data_dir), download = True, split = "test", transform = processor.process_image)
     elif(options.eval_data_type == "GTSRB"):
@@ -112,6 +112,8 @@ def get_eval_test_dataloader(options, processor):
         dataset = ImageLabelDataset(root = options.eval_test_data_dir, transform = processor.process_image)
     elif(options.eval_data_type == "OxfordIIITPet"):
         dataset = torchvision.datasets.OxfordIIITPet(root = os.path.dirname(options.eval_test_data_dir), download = True, split = "test", transform = processor.process_image)
+    elif(options.eval_data_type == "coco"):
+        dataset = ImageLabelDataset(root = options.eval_test_data_dir, transform = processor.process_image)
     elif(options.eval_data_type == "RenderedSST2"):
         dataset = torchvision.datasets.RenderedSST2(root = os.path.dirname(options.eval_test_data_dir), download = True, split = "test", transform = processor.process_image)
     elif(options.eval_data_type == "StanfordCars"):
@@ -124,7 +126,6 @@ def get_eval_test_dataloader(options, processor):
         dataset = ImageLabelDataset(root = options.eval_test_data_dir, transform = processor.process_image)
     else:
         raise Exception(f"Eval test dataset type {options.eval_data_type} is not supported")
-
     dataloader = torch.utils.data.DataLoader(dataset, batch_size = options.batch_size, num_workers = options.num_workers, sampler = None)
     dataloader.num_samples = len(dataset)
     dataloader.num_batches = len(dataloader)
@@ -145,7 +146,7 @@ def get_eval_train_dataloader(options, processor):
     elif(options.eval_data_type == "FGVCAircraft"):
         dataset = torchvision.datasets.FGVCAircraft(root = os.path.dirname(options.eval_train_data_dir), download = True, split = "trainval", transform = processor.process_image)
     elif(options.eval_data_type == "Flowers102"):
-        dataset = ImageLabelDataset(root = options.eval_train_data_dir, transform = processor.process_image)
+        dataset = torchvision.datasets.Flowers102(root = os.path.dirname(options.eval_test_data_dir), download = True, split = "test", transform = processor.process_image)
     elif(options.eval_data_type == "Food101"):
         dataset = torchvision.datasets.Food101(root = os.path.dirname(options.eval_train_data_dir), download = True, split = "train", transform = processor.process_image)
     elif(options.eval_data_type == "GTSRB"):
