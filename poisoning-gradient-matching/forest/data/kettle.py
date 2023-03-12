@@ -164,7 +164,7 @@ class Kettle():
         """Check devices and set an appropriate number of workers."""
         if torch.cuda.is_available():
             num_gpus = torch.cuda.device_count()
-            max_num_workers = 4 * num_gpus
+            max_num_workers = 1 * num_gpus
         else:
             max_num_workers = 4
         if torch.get_num_threads() > 1 and MAX_THREADING > 0:
