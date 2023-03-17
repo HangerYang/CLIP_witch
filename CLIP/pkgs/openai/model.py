@@ -300,6 +300,12 @@ class CLIP(nn.Module):
 
         self.initialize_parameters()
 
+        numel_list = [p.numel() for p in self.parameters()]
+        named_numel_list = [param.numel() for name, param in self.named_parameters()]
+        assert sum(numel_list) == sum(named_numel_list)
+        self.used_parameters = [param for name, param in self.named_parameters() if name != 'logit_scale']
+        assert len(self.parameters()) -1 == len(self.used_parameters)
+
     def initialize_parameters(self):
         nn.init.normal_(self.token_embedding.weight, std=0.02)
         nn.init.normal_(self.positional_embedding, std=0.01)

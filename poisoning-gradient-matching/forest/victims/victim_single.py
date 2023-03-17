@@ -128,8 +128,8 @@ class _VictimSingle(_VictimBase):
         #             print('----------', e)
         #             print(name)
         #             print(count)
-        #     count += 1
-        gradients = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True)
+        # gradients = torch.autograd.grad(loss, self.model.parameters(), allow_unused=True)
+        gradients = torch.autograd.grad(loss, self.model.used_parameters)
         # pdb.set_trace()
         grad_norm = 0
         # count = 0
