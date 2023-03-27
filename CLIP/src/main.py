@@ -17,14 +17,16 @@ import torch.backends.cudnn as cudnn
 from torch.cuda.amp import GradScaler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from pkgs.openai.clip import load as load_model
 
-from .train import train
-from .evaluate import evaluate
-from .data import load as load_data
-from .parser import parse_args
-from .scheduler import cosine_scheduler
-from .logger import get_logger, set_logger
+from train import train
+from evaluate import evaluate
+from data import load as load_data
+from parser import parse_args
+from scheduler import cosine_scheduler
+from logger import get_logger, set_logger
+
+sys.path.append("..")
+from pkgs.openai.clip import load as load_model
 
 mp.set_start_method("spawn", force = True)
 warnings.filterwarnings("ignore")

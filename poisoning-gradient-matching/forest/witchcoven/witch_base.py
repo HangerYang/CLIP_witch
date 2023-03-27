@@ -175,6 +175,7 @@ class _Witch():
             target_losses = 0
             poison_correct = 0
             for batch, example in enumerate(dataloader):
+                # pdb.set_trace()
                 loss, prediction = self._batched_step(poison_delta, poison_delta_text, poison_bounds, example, victim, kettle)
                 target_losses += loss
                 poison_correct += prediction

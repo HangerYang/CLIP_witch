@@ -17,13 +17,14 @@ class WitchGradientMatchingClip(_Witch):
         token_ids = token_ids.to(device=self.setup['device'], non_blocking=True)
         attn_masks = attn_masks.to(device=self.setup['device'], non_blocking=True)
         # Add adversarial pattern
+
         poison_slices, batch_positions = [], []
         for batch_id, image_id in enumerate(indices.tolist()):
             lookup = kettle.poison_lookup.get(image_id)
             if lookup is not None:
                 poison_slices.append(lookup)
                 batch_positions.append(batch_id)
-
+        # pdb.set_trace()
         # This is a no-op in single network brewing
         # In distributed brewing, this is a synchronization operation
         images, token_ids, poison_slices, batch_positions, randgen = victim.distributed_control(
@@ -90,7 +91,7 @@ class WitchGradientMatchingClip(_Witch):
             poison_loss = criterion(probs, torch.ones_like(probs))
 
             prediction = (probs > 0.5).sum()
-            poison_grad = torch.autograd.grad(poison_loss, model.parameters(), retain_graph=True, allow_unused=True, create_graph=True)
+            poison_grad = torch.autograd.grad(poison_loss, model.used_parameters, retain_graph=True, allow_unused=True, create_graph=True)
 
             passenger_loss = self._passenger_loss(poison_grad, target_grad, target_gnorm)
             if self.args.centreg != 0:

@@ -4,3 +4,4 @@
 CLIP/poisoned_data/*
 cc
 *.ipynb
+*.npz

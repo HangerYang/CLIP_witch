@@ -1,10 +1,14 @@
 import os
 import argparse
-import utils.config as config
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm    
-from .scheduler import cosine_scheduler
+from scheduler import cosine_scheduler
+
+import sys
+sys.path.append("..")
+
+import utils.config as config
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -46,5 +50,6 @@ def parse_args():
     parser.add_argument("--checkpoint", default = None, type = str, help = "Path to checkpoint to resume training")
     parser.add_argument("--pretrained", default = False, action = "store_true", help = "Use the OpenAI pretrained models")
 
+    parser.add_argument("--targets_path", type = str, default = None, help = "Path to attacker's targets")
     options = parser.parse_args()
-    return options
+    return options 

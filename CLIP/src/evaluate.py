@@ -5,7 +5,7 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm    
-from .scheduler import cosine_scheduler
+from scheduler import cosine_scheduler
 
 def get_validation_metrics(model, dataloader, options):
     logging.info("Started validating")
@@ -74,6 +74,56 @@ def get_zeroshot_metrics(model, processor, test_dataloader, options):
 
             for k in topk:
                 correct[k] += torch.sum(torch.any(predictions[:k], dim = 0)).item() 
+
+    results = {f"zeroshot_top{k}": correct[k] / test_dataloader.num_samples for k in topk}
+    logging.info("Finished zeroshot testing")
+
+    return results
+
+def get_targets_zeroshot_metrics(model, processor, test_dataloader, options, report_distribution=False):
+    logging.info("Started target testing")
+
+    model.eval()
+    umodel = model.module if(options.distributed) else model
+
+    config = eval(open(f"{options.eval_test_data_dir}/classes.py", "r").read())
+    classes, templates = config["classes"], config["templates"]
+    with torch.no_grad():
+        text_embeddings = []
+        for c in tqdm(classes):
+            text = [template(c) for template in templates]
+            text_tokens = processor.process_text(text)
+            text_input_ids, text_attention_mask = text_tokens["input_ids"].to(options.device), text_tokens["attention_mask"].to(options.device) 
+            text_embedding = umodel.get_text_features(input_ids = text_input_ids, attention_mask = text_attention_mask)
+            text_embedding /= text_embedding.norm(dim = -1, keepdim = True)
+            text_embedding = text_embedding.mean(dim = 0)
+            text_embedding /= text_embedding.norm()
+            text_embeddings.append(text_embedding)
+        text_embeddings = torch.stack(text_embeddings, dim = 1).to(options.device)
+
+    distribution = {}
+    idx = 0
+    with torch.no_grad():
+        topk = [1, 3, 5, 10]
+        correct = {k: 0 for k in topk}
+        
+        for image, target_label, orig_label in tqdm(test_dataloader):
+            image, target_label, orig_label = \
+                    image.to(options.device), target_label.to(options.device), orig_label.to(options.device)
+            image_embedding = umodel.get_image_features(image)
+            image_embedding /= image_embedding.norm(dim = -1, keepdim = True)
+            logits = (image_embedding @ text_embeddings)
+            ranks = logits.topk(max(topk), 1)[1].T
+            predictions = ranks == target_label
+
+            for k in topk:
+                correct[k] += torch.sum(torch.any(predictions[:k], dim = 0)).item() 
+            if report_distribution:
+                for i in range(len(target_label)):
+                    logging.info("target label: %d; original label: %d" % (target_label[i], orig_label[i]))
+                    for j in range(len(classes)):
+                        logging.info('class %d: %f' % (j, logits[i][j]))
+
 
     results = {f"zeroshot_top{k}": correct[k] / test_dataloader.num_samples for k in topk}
     logging.info("Finished zeroshot testing")
@@ -222,7 +272,9 @@ def evaluate(epoch, model, processor, data, options):
                 metrics.update(get_linear_probe_metrics(model, data["eval_train"], data["eval_test"], options))
             else:
                 metrics.update(get_zeroshot_metrics(model, processor, data["eval_test"], options))
-        
+        if data['eval_targets'] is not None:
+            metrics.update(get_targets_zeroshot_metrics(model, processor, 
+                                data["eval_targets"], options, report_distribution=True))
         if(metrics):
             logging.info("Results")
             for key, value in metrics.items():

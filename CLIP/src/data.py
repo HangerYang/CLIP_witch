@@ -7,21 +7,58 @@ import pandas as pd
 from PIL import Image, ImageFile
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.data.distributed import DistributedSampler
-
+import numpy as np
 # from ..utils.augment_text import _augment_text
 # from ..utils.augment_image import _augment_image
 
-from CLIP.data.CIFAR10.test.classes import classes as CIFAR10
-from CLIP.data.CIFAR100.test.classes import classes as CIFAR100
-from CLIP.data.ImageNet1K.validation.classes import classes as ImageNet1K
+
+# from CLIP.data.CIFAR10.test.classes import classes as CIFAR10
+# from CLIP.data.CIFAR100.test.classes import classes as CIFAR100
+# from CLIP.data.ImageNet1K.validation.classes import classes as ImageNet1K
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-DATASETS = {
-    'CIFAR10' : CIFAR10,
-    'CIFAR100' : CIFAR100,
-    'ImageNet1K' : ImageNet1K
-}
+# DATASETS = {
+#     'CIFAR10' : CIFAR10,
+#     'CIFAR100' : CIFAR100,
+#     'ImageNet1K' : ImageNet1K
+# }
+
+
+class ImageCaptionDatasetOrig(Dataset):
+    def __init__(self, path, image_key, caption_key, delimiter, processor, inmodal = False):
+        logging.debug(f"Loading aligned data from {path}")
+
+        df = pd.read_csv(path, sep = delimiter)
+
+        self.root = os.path.dirname(path)
+        self.images = df[image_key].tolist()
+        self.captions = processor.process_text(df[caption_key].tolist())
+        self.processor = processor
+        
+        self.inmodal = inmodal
+        if(inmodal):
+            self.augment_captions = processor.process_text([_augment_text(caption) for caption in df[caption_key].tolist()])
+        
+        logging.debug("Loaded data")
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, idx):
+        item = {}
+        
+        if(self.inmodal):
+            item["input_ids"] = self.captions["input_ids"][idx], self.augment_captions["input_ids"][idx]
+            item["attention_mask"] = self.captions["attention_mask"][idx], self.augment_captions["attention_mask"][idx]
+            item["pixel_values"] = self.processor.process_image(Image.open(os.path.join(self.root, self.images[idx]))), self.processor.process_image(_augment_image(os.path.join(self.root, self.images[idx])))
+        else:  
+            item["input_ids"] = self.captions["input_ids"][idx]
+            item["attention_mask"] = self.captions["attention_mask"][idx]
+            item["pixel_values"] = self.processor.process_image(Image.open(os.path.join(self.root, self.images[idx])))
+            
+        return item
+
 class ImageCaptionDataset(Dataset):
     def __init__(self, path, processor,
                  image_key='path', caption_key='caption', delimiter=',', inmodal = False):
@@ -80,7 +117,7 @@ def get_train_dataloader(options, processor):
 
     batch_size = options.batch_size
 
-    dataset = ImageCaptionDataset(path, image_key = options.image_key, caption_key = options.caption_key, delimiter = options.delimiter, processor = processor, inmodal = options.inmodal)
+    dataset = ImageCaptionDatasetOrig(path, image_key = options.image_key, caption_key = options.caption_key, delimiter = options.delimiter, processor = processor, inmodal = options.inmodal)
 
     sampler = DistributedSampler(dataset) if(options.distributed) else None
 
@@ -154,6 +191,34 @@ class CIFAR10_Caption(torchvision.datasets.CIFAR10):
 
         return target, index
 
+
+
+class TargetWrapper(Dataset):
+    def __init__(self, dataset, targets:dict):
+        '''
+        dataset: image classification datasets 
+        targets: a list of [target image indice, intended class]
+        '''
+        self.data = []
+        self.target_labels = []
+        self.orig_labels = []
+        # import pdb 
+        # pdb.set_trace()
+        for index in targets:
+            self.data.append(dataset[index][0])
+            self.target_labels.append(targets[index])
+            self.orig_labels.append(dataset[index][1])
+        
+        # self.data = torch.stack(self.data)
+        # print(self.data.shape)
+
+    def __getitem__(self, idx):
+        return self.data[idx], self.target_labels[idx], self.orig_labels[idx]
+    
+    def __len__(self):
+        return len(self.data)
+
+
 def get_eval_test_dataloader(options, processor):
     if(options.eval_test_data_dir is None): return
 
@@ -189,12 +254,30 @@ def get_eval_test_dataloader(options, processor):
         dataset = ImageLabelDataset(root = options.eval_test_data_dir, transform = processor.process_image)
     else:
         raise Exception(f"Eval test dataset type {options.eval_data_type} is not supported")
-
+        
     dataloader = torch.utils.data.DataLoader(dataset, batch_size = options.batch_size, num_workers = options.num_workers, sampler = None)
     dataloader.num_samples = len(dataset)
     dataloader.num_batches = len(dataloader)
 
     return dataloader
+
+def get_eval_target_dataloader(options, processor, targets):
+    if targets is None:
+        return None
+        
+    if(options.eval_data_type == "CIFAR10"):
+        dataset = torchvision.datasets.CIFAR10(root = os.path.dirname(options.eval_test_data_dir), download = True, train = True, transform = processor.process_image)
+    else:
+        raise Exception(f"Eval test dataset type {options.eval_data_type} is not supported")
+
+    dataset = TargetWrapper(dataset, targets)
+    
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size = options.batch_size, num_workers = options.num_workers, sampler = None)
+    dataloader.num_samples = len(dataset)
+    dataloader.num_batches = len(dataloader)
+
+    return dataloader
+
 
 def get_eval_train_dataloader(options, processor):
     if(not options.linear_probe or options.eval_train_data_dir is None): return
@@ -243,10 +326,22 @@ def load_default_datasets(options, processor):
 
 def load(options, processor):
     data = {}
-    
+    targets = None
+    if options.targets_path is not None:
+        f = open(options.targets_path, "r")
+        lines = f.readlines()
+        targets = {}
+        
+        for line in lines:
+            if line != '':
+                t = line.split(',')
+                targets[int(t[0])] = int(t[1])
+
     data["train"] = get_train_dataloader(options, processor)
     data["validation"] = get_validation_dataloader(options, processor)
     data["eval_test"] = get_eval_test_dataloader(options, processor)
     data["eval_train"] = get_eval_train_dataloader(options, processor)
 
+    data['eval_targets'] = get_eval_target_dataloader(options, processor, targets)
+            
     return data

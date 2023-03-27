@@ -23,6 +23,8 @@ if __name__ == "__main__":
                          embedding_size=model.embedding_size, ctx_size=model.ctx_size, setup=setup)
     witch = forest.Witch(args, setup=setup)
 
+    # import pdb
+    # pdb.set_trace()
     start_time = time.time()
     if args.pretrained:
         print('Loading pretrained model...')

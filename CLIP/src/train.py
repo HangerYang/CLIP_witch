@@ -7,12 +7,13 @@ import torch.distributed as dist
 from torch.cuda.amp import autocast
 
 def get_loss(umodel, outputs, criterion, options):  
+    
     if(options.inmodal):
-        image_embeds, augmented_image_embeds = outputs.image_embeds[:len(outputs.image_embeds) // 2], outputs.image_embeds[len(outputs.image_embeds) // 2:]
-        text_embeds, augmented_text_embeds = outputs.text_embeds[:len(outputs.text_embeds) // 2], outputs.text_embeds[len(outputs.text_embeds) // 2:]
+        image_embeds, augmented_image_embeds = outputs[0][:len(outputs.image_embeds) // 2], outputs[0][len(outputs.image_embeds) // 2:]
+        text_embeds, augmented_text_embeds = outputs[1][:len(outputs.text_embeds) // 2], outputs[1][len(outputs.text_embeds) // 2:]
     else:
-        image_embeds = outputs.image_embeds
-        text_embeds = outputs.text_embeds
+        image_embeds = outputs[0]
+        text_embeds = outputs[1]
             
     if(options.distributed):
         if(options.inmodal):

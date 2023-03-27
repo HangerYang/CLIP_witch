@@ -52,7 +52,7 @@ def options():
     parser.add_argument('--target_criterion', default='binary', type=str, help='Loss criterion for target loss')
     parser.add_argument('--restarts', default=8, type=int, help='How often to restart the attack.')
 
-    parser.add_argument('--pbatch', default=512, type=int, help='Poison batch size during optimization')
+    parser.add_argument('--pbatch', default=128, type=int, help='Poison batch size during optimization')
     parser.add_argument('--pshuffle', action='store_true', help='Shuffle poison batch during optimization')
     parser.add_argument('--paugment', action='store_false', help='Do not augment poison batch during optimization')
     parser.add_argument('--data_aug', type=str, default='default', help='Mode of diff. data augmentation.')

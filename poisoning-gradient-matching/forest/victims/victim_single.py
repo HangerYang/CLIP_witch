@@ -39,8 +39,10 @@ class _VictimSingle(_VictimBase):
         # self.model = torch.nn.DataParallel(self.model)
         # self.model = self.model.module
 
-        if torch.cuda.device_count() > 1: # remove comment after debugging
-            self.model = torch.nn.DataParallel(self.model)
+        # if torch.cuda.device_count() > 1: # remove comment after debugging
+        #     # self.model = torch.nn.DataParallel(self.model)
+        #     torch.distributed.init_process_group('nccl')
+        #     self.model = torch.nn.parallel.DistributedDataParallel(self.model, [0])
         print(f'{self.args.net[0]} model initialized with random key {self.model_init_seed}.')
 
     """ METHODS FOR (CLEAN) TRAINING AND TESTING OF BREWED POISONS"""
