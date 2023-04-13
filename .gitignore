@@ -5,3 +5,8 @@ CLIP/poisoned_data/*
 cc
 *.ipynb
 *.npz
+*.npy
+data_csv/
+downloaded_data/
+logs/
+playground.py

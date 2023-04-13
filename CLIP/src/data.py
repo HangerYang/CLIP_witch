@@ -11,18 +11,18 @@ import numpy as np
 # from ..utils.augment_text import _augment_text
 # from ..utils.augment_image import _augment_image
 
-
-# from CLIP.data.CIFAR10.test.classes import classes as CIFAR10
-# from CLIP.data.CIFAR100.test.classes import classes as CIFAR100
-# from CLIP.data.ImageNet1K.validation.classes import classes as ImageNet1K
+if 'CLIP_witch/poisoning-gradient-matching' in os.getcwd():
+    from CLIP.data.CIFAR10.test.classes import classes as CIFAR10
+    from CLIP.data.CIFAR100.test.classes import classes as CIFAR100
+    from CLIP.data.ImageNet1K.validation.classes import classes as ImageNet1K
+    DATASETS = {
+        'CIFAR10' : CIFAR10,
+        'CIFAR100' : CIFAR100,
+        'ImageNet1K' : ImageNet1K
+    }
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-# DATASETS = {
-#     'CIFAR10' : CIFAR10,
-#     'CIFAR100' : CIFAR100,
-#     'ImageNet1K' : ImageNet1K
-# }
 
 
 class ImageCaptionDatasetOrig(Dataset):
@@ -162,7 +162,7 @@ class ImageLabelDataset(Dataset):
 class CIFAR10_Caption(torchvision.datasets.CIFAR10):
     """Super-class CIFAR10 to return image ids with images."""
     def __init__(self, data_path, processor):
-        super().__init__(root=data_path, train=True, download=True, transform=processor.process_image)
+        super().__init__(root=data_path, train=False, download=True, transform=processor.process_image)
         self.classes = CIFAR10['classes']
         self.super_classes = CIFAR10['superclasses']
         self.templates = CIFAR10['templates']
@@ -266,7 +266,7 @@ def get_eval_target_dataloader(options, processor, targets):
         return None
         
     if(options.eval_data_type == "CIFAR10"):
-        dataset = torchvision.datasets.CIFAR10(root = os.path.dirname(options.eval_test_data_dir), download = True, train = True, transform = processor.process_image)
+        dataset = torchvision.datasets.CIFAR10(root = os.path.dirname(options.eval_test_data_dir), download = True, train = False, transform = processor.process_image)
     else:
         raise Exception(f"Eval test dataset type {options.eval_data_type} is not supported")
 

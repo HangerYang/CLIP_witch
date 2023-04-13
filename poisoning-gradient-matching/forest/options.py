@@ -31,6 +31,7 @@ def options():
     parser.add_argument('--budget', default=0.01, type=float, help='Fraction of training data that is poisoned')
     parser.add_argument('--targets', default=1, type=int, help='Number of targets')
     parser.add_argument('--targetclass', default=-1, type=int, help='Class of targets')
+    parser.add_argument('--intendedclass', default=None, type=int, help='Intended class of targets')
 
     # Files and folders
     parser.add_argument('--name', default='', type=str, help='Name tag for the result table and possibly for export folders.')
@@ -111,5 +112,7 @@ def options():
     # Distributed Computations
     parser.add_argument("--local_rank", default=None, type=int, help='Distributed rank. This is an INTERNAL ARGUMENT! '
                                                                      'Only the launch utility should set this argument!')
+    parser.add_argument("--dataparallel_device", default='0', type=str, help='')     
+    parser.add_argument("--device", default=0, type=int, help='')                                                                 
 
     return parser

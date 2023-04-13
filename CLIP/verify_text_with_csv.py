@@ -19,6 +19,7 @@ parser.add_argument("--end_epoch", type = int, default = 64)
 parser.add_argument("--batch_size", type = int, default = 1024)
 parser.add_argument("--device", type = str, default = "7")
 parser.add_argument("--path", type = str, default = "plane")
+parser.add_argument("--model_dir", type = str, default = "logs")
 
 options = parser.parse_args()
 
@@ -26,6 +27,7 @@ model_name=options.model_name
 start = options.start_epoch
 end = options.end_epoch
 path= options.path
+model_dir = options.model_dir
 device = 'cuda:{}'.format(options.device)
 batch_size = options.batch_size
 
@@ -42,7 +44,7 @@ for epoch in tqdm(range(start, end)):
     dataset = ImageCaptionDatasetOrig(path, image_key=image_key, caption_key=caption_key, delimiter=delimiter, processor=processor, inmodal=False)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=16)
 
-    pretrained_path = "logs/{}/checkpoints/epoch_{}.pt".format(model_name, epoch)
+    pretrained_path = "{}/{}/checkpoints/epoch_{}.pt".format(model_dir, model_name, epoch)
     checkpoint = torch.load(pretrained_path, map_location = device)
     
     state_dict = checkpoint["state_dict"]

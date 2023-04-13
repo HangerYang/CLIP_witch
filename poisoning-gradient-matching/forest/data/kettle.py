@@ -164,7 +164,7 @@ class Kettle():
         """Check devices and set an appropriate number of workers."""
         if torch.cuda.is_available():
             num_gpus = torch.cuda.device_count()
-            max_num_workers = 1 * num_gpus
+            max_num_workers = 2 * num_gpus
         else:
             max_num_workers = 4
         if torch.get_num_threads() > 1 and MAX_THREADING > 0:
@@ -353,9 +353,14 @@ class Kettle():
             target_class = np.random.randint(num_classes)
         else:
             target_class = self.args.targetclass
-        list_intentions = list(range(num_classes))
-        list_intentions.remove(target_class)
-        intended_class = [np.random.choice(list_intentions)] * self.args.targets
+        
+        if self.args.intendedclass is not None:
+            assert(self.args.intendedclass != target_class)
+            intended_class = [self.args.intendedclass] * self.args.targets
+        else:
+            list_intentions = list(range(num_classes))
+            list_intentions.remove(target_class)
+            intended_class = [np.random.choice(list_intentions)] * self.args.targets
 
         if self.args.targets < 1:
             poison_setup = dict(poison_budget=0, target_num=0,
@@ -510,9 +515,13 @@ class Kettle():
         """
         prefix = self.args.train_data.split('/')[-1].split('.')[0]
         with open(os.path.join(path, prefix + '_target_ids.log'), 'w') as f:
-            for id in self.target_ids:
-                f.write(str(id))
+            for id_ in self.target_ids:
+                f.write(str(id_))
                 f.write(',')
+                f.write(str(self.poison_setup['target_class']))
+                f.write(',')
+                f.write(str(self.poison_setup['intended_class'][0]))
+                f.write('\n')       
 
         if path is None:
             path = self.args.poison_path
@@ -623,11 +632,17 @@ class Kettle():
                   labels[idx] = label
 
             prefix = self.args.train_data.split('/')[-1].split('.')[0]
-            np.save(os.path.join(path, prefix + '_poisoned_training_data_targetclass_%d_intendedclass_%d.npy'
-                                 % (self.poison_setup['target_class'], self.poison_setup['intended_class'][0])), training_data)
+            np.save(os.path.join(path, prefix + '_poisoned_training_data_targetclass_%d_intendedclass_%d_%s.npy'
+                                 % (self.poison_setup['target_class'], 
+                                    self.poison_setup['intended_class'][0],
+                                    self.args.threatmodel)), 
+                                 training_data)
             if poison_delta_text is not None:
-                np.save(os.path.join(path, prefix + '_poisoned_training_labels_targetclass_%d_intendedclass_%d.npy'
-                                     % (self.poison_setup['target_class'], self.poison_setup['intended_class'][0])), labels)
+                np.save(os.path.join(path, prefix + '_poisoned_training_labels_targetclass_%d_intendedclass_%d_%s.npy'
+                                     % (self.poison_setup['target_class'], 
+                                        self.poison_setup['intended_class'][0],
+                                        self.args.threatmodel)), 
+                                     labels)
 
         elif mode == 'kettle-export':
             with open(f'kette_{self.args.dataset}{self.args.model}.pkl', 'wb') as file:

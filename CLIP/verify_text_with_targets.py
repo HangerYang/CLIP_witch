@@ -21,12 +21,14 @@ parser.add_argument("--device", type = str, default = "cuda:7")
 parser.add_argument("--targets_path", type = str, default = None)
 parser.add_argument("--eval_data_type", type = str, default = 'CIFAR10')
 parser.add_argument("--eval_test_data_dir", type = str, default = None)
+parser.add_argument("--model_dir", type = str, default = "logs")
 
 options = parser.parse_args()
 
 model_name=options.model_name
 start = options.start_epoch
 end = options.end_epoch
+model_dir = options.model_dir
 
 f = open(options.targets_path, "r")
 lines = f.readlines()
@@ -37,20 +39,30 @@ for line in lines:
         t = line.split(',')
         targets[int(t[0])] = int(t[1])
 
+intended = {}
+
+for line in lines:
+    if line != '':
+        t = line.split(',')
+        intended[int(t[0])] = int(t[2])
 
 k_total = []
+k_total_intended = []
 for epoch in tqdm(range(start, end)):
     epoch = str(epoch)
     
     model, processor = load_model(name = 'RN50', pretrained = False)
 
-    pretrained_path = "logs/{}/checkpoints/epoch_{}.pt".format(model_name, epoch)
+    pretrained_path = "{}/{}/checkpoints/epoch_{}.pt".format(model_dir, model_name, epoch)
     checkpoint = torch.load(pretrained_path, map_location = options.device)
     state_dict = checkpoint["state_dict"]
     model.load_state_dict(state_dict)
 
     dataloader = get_eval_target_dataloader(options, processor, targets)
     acc = []
+
+    dataloader_intended = get_eval_target_dataloader(options, processor, intended)
+    acc_intended = []
 
     model.eval().to(options.device)
     umodel = model
@@ -85,7 +97,23 @@ for epoch in tqdm(range(start, end)):
             
             k=np.diagonal(cosine_similarity(image_embedding, target_embeddings))
             acc.append(k)
+
+        for image, target_label, orig_label in dataloader_intended:
+            image, target_label, orig_label = image.to(options.device), target_label.to(options.device), orig_label.to(options.device)
+            image_embedding = umodel.get_image_features(image)
+            image_embedding /= image_embedding.norm(dim = -1, keepdim = True)
+            image_embedding = image_embedding.cpu().numpy()
+
+            target_embeddings = []
+            for c in target_label:
+                target_embeddings.append(text_embeddings[c])
+            target_embeddings = np.array(target_embeddings)
+            
+            k=np.diagonal(cosine_similarity(image_embedding, target_embeddings))
+            acc_intended.append(k)
     k_total.append(np.concatenate(acc))
+    k_total_intended.append(np.concatenate(acc_intended))
 
 
-np.save("save_verify_text_with_csv/{}_{}.npy".format(options.model_name, options.run_name), np.array(k_total))
+np.save("save_verify_text_with_csv/{}_{}.npy".format(options.model_name, 'target'), np.array(k_total))
+np.save("save_verify_text_with_csv/{}_{}.npy".format(options.model_name, 'intended'), np.array(k_total_intended))

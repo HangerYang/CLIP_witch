@@ -12,10 +12,13 @@ from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normal
 from .model import build
 from .tokenizer import SimpleTokenizer as Tokenizer
 
-# from CLIP.utils import config
-import sys
-sys.path.append('../../')
-from utils import config
+
+if 'CLIP_witch/poisoning-gradient-matching' in os.getcwd():
+    from CLIP.utils import config
+else:
+    import sys
+    sys.path.append('../../')
+    from utils import config
 
 models = {
     "RN50": "https://openaipublic.azureedge.net/clip/models/afeb0e10f9e5a86da6080e35cf09123aca3b358a0c3e3b6c78a7b63bc04b6762/RN50.pt",

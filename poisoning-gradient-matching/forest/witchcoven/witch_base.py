@@ -8,7 +8,8 @@ from ..utils import cw_loss
 from ..consts import NON_BLOCKING, BENCHMARK
 torch.backends.cudnn.benchmark = BENCHMARK
 from tqdm import tqdm
-
+import numpy as np
+import os
 class _Witch():
     """Brew poison with given arguments.
 
@@ -33,6 +34,7 @@ class _Witch():
         self.retain = True if self.args.ensemble > 1 and self.args.local_rank is None else False
         self.stat_optimal_loss = None
         self.binary_loss = BCELoss()
+        self.trial_count = 0
 
     """ BREWING RECIPES """
 
@@ -171,6 +173,7 @@ class _Witch():
         else:
             poison_bounds = None
 
+        train_loss = []
         for step in tqdm(range(self.args.attackiter)):
             target_losses = 0
             poison_correct = 0
@@ -208,7 +211,8 @@ class _Witch():
             if step % (self.args.attackiter // 5) == 0 or step == (self.args.attackiter - 1):
                 print(f'Iteration {step}: Target loss is {target_losses:2.4f}, '
                       f'Poison clean acc is {poison_acc * 100:2.2f}%')
-
+            train_loss.append(target_losses)
+            
             if self.args.step:
                 if self.args.clean_grad:
                     victim.step(kettle, None, self.targets, self.true_classes)
@@ -217,6 +221,12 @@ class _Witch():
 
             if self.args.dryrun:
                 break
+        
+        
+        prefix = self.args.train_data.split('/')[-1].split('.')[0]
+        np.save(os.path.join(self.args.poison_path, prefix + \
+                            '_train_loss_trial%d.npy' % self.trial_count),
+                np.array(train_loss))
 
         return poison_delta, poison_delta_text, target_losses
 
