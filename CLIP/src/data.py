@@ -335,7 +335,7 @@ def load(options, processor):
         for line in lines:
             if line != '':
                 t = line.split(',')
-                targets[int(t[0])] = int(t[1])
+                targets[int(t[0])] = int(t[2])
 
     data["train"] = get_train_dataloader(options, processor)
     data["validation"] = get_validation_dataloader(options, processor)
