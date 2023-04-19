@@ -4,6 +4,7 @@ import torch
 
 import datetime
 import time
+from pathlib import Path
 
 import forest
 torch.backends.cudnn.benchmark = forest.consts.BENCHMARK
@@ -18,6 +19,8 @@ if args.deterministic:
 
 if __name__ == "__main__":
     setup = forest.utils.system_startup(args)
+    Path(args.poison_path).mkdir(parents=True, exist_ok=True)
+
     model = forest.Victim(args, setup=setup)
     data = forest.Kettle(args, model.defs.batch_size, model.defs.augmentations, processor=model.processor,
                          embedding_size=model.embedding_size, ctx_size=model.ctx_size, setup=setup)

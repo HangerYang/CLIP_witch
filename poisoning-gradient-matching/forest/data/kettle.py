@@ -512,7 +512,11 @@ class Kettle():
 
         In automl export mode, export data into a single folder and produce a csv file that can be uploaded to
         google storage.
-        """
+        """  
+
+        if path is None:
+            path = self.args.poison_path
+
         prefix = self.args.train_data.split('/')[-1].split('.')[0]
         with open(os.path.join(path, prefix + '_target_ids.log'), 'w') as f:
             for id_ in self.target_ids:
@@ -521,10 +525,7 @@ class Kettle():
                 f.write(str(self.poison_setup['target_class']))
                 f.write(',')
                 f.write(str(self.poison_setup['intended_class'][0]))
-                f.write('\n')       
-
-        if path is None:
-            path = self.args.poison_path
+                f.write('\n')     
 
         dm = torch.tensor(self.trainset.data_mean)[:, None, None]
         ds = torch.tensor(self.trainset.data_std)[:, None, None]
