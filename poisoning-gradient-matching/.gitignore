@@ -9,7 +9,7 @@ result/
 *.log
 
 # Poison output
-*.png
+# *.png
 
 # but not the teaser
 !imgs/*.png
