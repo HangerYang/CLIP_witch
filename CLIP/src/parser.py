@@ -3,7 +3,7 @@ import argparse
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm    
-from scheduler import cosine_scheduler
+from src.scheduler import cosine_scheduler
 
 import sys
 sys.path.append("..")
@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument("--notes", type = str, default = None, help = "Notes for experiment")
     parser.add_argument("--num_workers", type = int, default = 8, help = "Number of workers per gpu")
     parser.add_argument("--inmodal", action = "store_true", default = False, help = "Inmodality Training")
-    parser.add_argument("--epochs", type = int, default = 64, help = "Number of train epochs")
+    parser.add_argument("--epochs", type = int, default = 32, help = "Number of train epochs")
     parser.add_argument("--batch_size", type = int, default = 128, help = "Batch size")
     parser.add_argument("--lr", type = float, default = 5e-4, help = "Learning rate")
     parser.add_argument("--beta1", type = float, default = 0.9, help = "Adam momentum factor (Beta 1)")

@@ -227,7 +227,7 @@ class _Witch():
         np.save(os.path.join(self.args.poison_path, prefix + \
                             '_train_loss_trial%d.npy' % self.trial_count),
                 np.array(train_loss))
-
+        self.trial_count += 1
         return poison_delta, poison_delta_text, target_losses
 
 

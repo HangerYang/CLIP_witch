@@ -5,7 +5,7 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm    
-from scheduler import cosine_scheduler
+from src.scheduler import cosine_scheduler
 
 def get_validation_metrics(model, dataloader, options):
     logging.info("Started validating")

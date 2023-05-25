@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model_name", type = str, default = "default")
 parser.add_argument("--run_name", type = str, default = "default")
 parser.add_argument("--start_epoch", type = int, default = 1)
-parser.add_argument("--end_epoch", type = int, default = 64)
+parser.add_argument("--end_epoch", type = int, default = 32)
 parser.add_argument("--batch_size", type = int, default = 1024)
 parser.add_argument("--num_workers", type = int, default = 16)
 parser.add_argument("--device", type = str, default = "cuda:7")
@@ -95,25 +95,25 @@ for epoch in tqdm(range(start, end)):
                 target_embeddings.append(text_embeddings[c])
             target_embeddings = np.array(target_embeddings)
             
-            k=np.diagonal(cosine_similarity(image_embedding, target_embeddings))
-            acc.append(k)
+            # k=np.diagonal(cosine_similarity(image_embedding, target_embeddings))
+            acc.append(image_embedding@text_embeddings.T)
 
-        for image, target_label, orig_label in dataloader_intended:
-            image, target_label, orig_label = image.to(options.device), target_label.to(options.device), orig_label.to(options.device)
-            image_embedding = umodel.get_image_features(image)
-            image_embedding /= image_embedding.norm(dim = -1, keepdim = True)
-            image_embedding = image_embedding.cpu().numpy()
+        # for image, target_label, orig_label in dataloader_intended:
+        #     image, target_label, orig_label = image.to(options.device), target_label.to(options.device), orig_label.to(options.device)
+        #     image_embedding = umodel.get_image_features(image)
+        #     image_embedding /= image_embedding.norm(dim = -1, keepdim = True)
+        #     image_embedding = image_embedding.cpu().numpy()
 
-            target_embeddings = []
-            for c in target_label:
-                target_embeddings.append(text_embeddings[c])
-            target_embeddings = np.array(target_embeddings)
+        #     target_embeddings = []
+        #     for c in target_label:
+        #         target_embeddings.append(text_embeddings[c])
+        #     target_embeddings = np.array(target_embeddings)
             
-            k=np.diagonal(cosine_similarity(image_embedding, target_embeddings))
-            acc_intended.append(k)
+        #     k=np.diagonal(cosine_similarity(image_embedding, target_embeddings))
+        #     acc_intended.append(k)
     k_total.append(np.concatenate(acc))
-    k_total_intended.append(np.concatenate(acc_intended))
+    # k_total_intended.append(np.concatenate(acc_intended))
 
 
-np.save("save_verify_text_with_csv/{}_{}.npy".format(options.model_name, 'target'), np.array(k_total))
-np.save("save_verify_text_with_csv/{}_{}.npy".format(options.model_name, 'intended'), np.array(k_total_intended))
+np.save("save_verify_text_with_csv/{}_{}.npy".format(options.model_name, 'similarity'), np.array(k_total))
+# np.save("save_verify_text_with_csv/{}_{}.npy".format(options.model_name, 'intended'), np.array(k_total_intended))

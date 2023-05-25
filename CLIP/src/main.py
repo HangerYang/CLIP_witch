@@ -18,12 +18,12 @@ from torch.cuda.amp import GradScaler
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 
-from train import train
-from evaluate import evaluate
-from data import load as load_data
-from parser import parse_args
-from scheduler import cosine_scheduler
-from logger import get_logger, set_logger
+from src.train import train
+from src.evaluate import evaluate
+from src.data import load as load_data
+from src.parser import parse_args
+from src.scheduler import cosine_scheduler
+from src.logger import get_logger, set_logger
 
 sys.path.append("..")
 from pkgs.openai.clip import load as load_model

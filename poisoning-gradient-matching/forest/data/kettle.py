@@ -3,7 +3,7 @@ import pdb
 
 import torch
 import numpy as np
-
+import pandas as pd
 import pickle
 
 import datetime
@@ -62,8 +62,8 @@ class Kettle():
             # cc = torch.cat([self.trainset[i][0].reshape(3, -1) for i in range(len(self.trainset))], dim=1)
             # self.trainsetdata_mean = torch.mean(cc, dim=1).tolist()
             # self.trainset.data_std = torch.std(cc, dim=1).tolist()
-            self.trainset.data_mean = (0.0, 0.0, 0.0)
-            self.trainset.data_std = (1.0, 1.0, 1.0)
+            self.trainset.data_mean = (0.48145466, 0.4578275, 0.40821073)
+            self.trainset.data_std = (0.26862954, 0.26130258, 0.27577711)
 
             self.dm = torch.tensor(self.trainset.data_mean)[None, :, None, None].to(**self.setup)
             self.ds = torch.tensor(self.trainset.data_std)[None, :, None, None].to(**self.setup)
@@ -87,7 +87,7 @@ class Kettle():
             self.trainset, self.validset = self.prepare_data(normalize=True)
 
         num_workers = self.get_num_workers()
-
+        print(self.validset.classes)
         if self.args.lmdb_path is not None:
             from .lmdb_datasets import LMDBDataset  # this also depends on py-lmdb
             self.trainset = LMDBDataset(self.trainset, self.args.lmdb_path, 'train')
@@ -513,12 +513,20 @@ class Kettle():
         In automl export mode, export data into a single folder and produce a csv file that can be uploaded to
         google storage.
         """  
-
+        
+        target_intend =  'target_%s_intend_%s' % (self.validset.classes[self.poison_setup['target_class']], 
+                                    self.validset.classes[self.poison_setup['intended_class'][0]])
+        
+        hyperparam = 'targetn_%d_restart_%d_attkiter_%d_%s_%s' % \
+                        (self.args.targets, self.args.restarts, self.args.attackiter, \
+                         self.args.datatype, self.args.poisonkey)
         if path is None:
             path = self.args.poison_path
 
         prefix = self.args.train_data.split('/')[-1].split('.')[0]
-        with open(os.path.join(path, prefix + '_target_ids.log'), 'w') as f:
+        location = os.path.join(path, target_intend, hyperparam)
+        os.makedirs(location, exist_ok=True)
+        with open(os.path.join(location, 'target_ids.log'), 'w') as f:
             for id_ in self.target_ids:
                 f.write(str(id_))
                 f.write(',')
@@ -594,6 +602,18 @@ class Kettle():
                 intended_class = self.poison_setup['intended_class'][enum]
                 _save_image(target, intended_class, idx, location=os.path.join(path, 'targets', names[intended_class]), train=False)
             print('Target images exported with intended class labels ...')
+
+        elif mode == 'csv':
+            image_paths = []
+            image_loc = os.path.join(location, 'images')
+            os.makedirs(image_loc, exist_ok=True)
+            for input, label, idx, attn_mask in self.trainset: 
+                _save_image(input, label, idx, location=image_loc, train=True)
+
+                image_paths.append(os.path.join(image_loc, str(idx) + '.png'))
+            data = {'caption': self.trainset.captions_text, 'path': image_paths}
+            df = pd.DataFrame(data)
+            df.to_csv(os.path.join(location, 'poisoned_data.csv'), index=False)
 
         elif mode in ['automl-upload', 'automl-all', 'automl-baseline']:
             from ..utils import automl_bridge

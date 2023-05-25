@@ -32,6 +32,7 @@ def options():
     parser.add_argument('--targets', default=1, type=int, help='Number of targets')
     parser.add_argument('--targetclass', default=-1, type=int, help='Class of targets')
     parser.add_argument('--intendedclass', default=None, type=int, help='Intended class of targets')
+    parser.add_argument('--datatype', default='classification', type=str, help='Intended class of targets')
 
     # Files and folders
     parser.add_argument('--name', default='', type=str, help='Name tag for the result table and possibly for export folders.')
@@ -40,6 +41,7 @@ def options():
     parser.add_argument('--data_path', default='~/data', type=str)
     parser.add_argument('--train_data', default='~/data', type=str)
     parser.add_argument('--validation_data', default='downloaded_data', type=str)
+    parser.add_argument('--root', default=None, type=str)
     ###########################################################################
 
 

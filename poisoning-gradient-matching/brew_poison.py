@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # Export
     if args.save is not None:
-        data.export_poison(poison_delta, poison_delta_text, path=args.poison_path, mode=args.save)
+        data.export_poison(poison_delta, poison_delta_text, path=args.poison_path, mode='csv')
 
     print(datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p"))
     print('---------------------------------------------------')

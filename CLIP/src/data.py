@@ -26,12 +26,14 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 
 class ImageCaptionDatasetOrig(Dataset):
-    def __init__(self, path, image_key, caption_key, delimiter, processor, inmodal = False):
+    def __init__(self, path, image_key, caption_key, delimiter, processor, inmodal = False, root=None):
         logging.debug(f"Loading aligned data from {path}")
 
         df = pd.read_csv(path, sep = delimiter)
 
         self.root = os.path.dirname(path)
+        # if root is not None:
+        self.root = ''
         self.images = df[image_key].tolist()
         self.captions = processor.process_text(df[caption_key].tolist())
         self.processor = processor
@@ -61,16 +63,18 @@ class ImageCaptionDatasetOrig(Dataset):
 
 class ImageCaptionDataset(Dataset):
     def __init__(self, path, processor,
-                 image_key='path', caption_key='caption', delimiter=',', inmodal = False):
+                 image_key='path', caption_key='caption', delimiter=',', inmodal = False, root=None):
         logging.debug(f"Loading aligned data from {path}")
 
         df = pd.read_csv(path, sep = delimiter)
 
         self.root = os.path.dirname(path)
+        if root is not None:
+            self.root = root
         self.images = df[image_key].tolist()
         self.captions = processor.process_text(df[caption_key].tolist())
         self.processor = processor
-
+        self.captions_text = df[caption_key].tolist()
 
         self.inmodal = inmodal
         # if(inmodal):
@@ -131,7 +135,7 @@ def get_validation_dataloader(options, processor):
     path = options.validation_data
     if(path is None): return
 
-    dataset = ImageCaptionDataset(path, image_key = options.image_key, caption_key = options.caption_key, delimiter = options.delimiter, processor = processor, inmodal = options.inmodal)
+    dataset = ImageCaptionDatasetOrig(path, image_key = options.image_key, caption_key = options.caption_key, delimiter = options.delimiter, processor = processor, inmodal = options.inmodal)
     dataloader = DataLoader(dataset, batch_size = options.batch_size, shuffle = False, num_workers = options.num_workers, pin_memory = True, sampler = None, drop_last = False)
     dataloader.num_samples = len(dataset)
     dataloader.num_batches = len(dataloader)
@@ -320,7 +324,7 @@ def get_eval_train_dataloader(options, processor):
     return dataloader
 
 def load_default_datasets(options, processor):
-    return ImageCaptionDataset(options.train_data, processor), \
+    return ImageCaptionDataset(options.train_data, processor, root=options.root), \
            CIFAR10_Caption(options.validation_data, processor)#, options.target_dataset) #TODO: add arg target_dataset
 
 
